@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
+# Original source:
+# https://github.com/pytorch/pytorch/blob/master/scripts/build_mobile.sh#L63
+
+if [ -z "$MAX_JOBS" ]; then
+  if [ "$(uname)" == 'Darwin' ]; then
+    MAX_JOBS=$(sysctl -n hw.ncpu)
+  else
+    MAX_JOBS=$(nproc)
+  fi
+fi
+
 git clone https://github.com/awslabs/aws-lambda-cpp &&
   cd aws-lambda-cpp &&
-  mkdir -p build &&
-  cd build &&
-  cmake3 .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./install &&
-  make && make install
+  cmake3 --build . --target install -- "-j${MAX_JOBS}"

@@ -1,23 +1,30 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.5...3.16)
 
-project(tagger LANGUAGES CXX)
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
 
-# Display current source directory
+project(altorch VERSION 0.1.0
+  DESCRIPTION "PyTorch AWS Lambda model inference deployment"
+  LANGUAGES CXX
+)
 
-message(STATUS "Current source directory:")
-message(STATUS ${CMAKE_CURRENT_SOURCE_DIR} )
+
+# Default to highest available C++ version
+
+set(COMPILATION_OPTIONS "" CACHE STRING "User provided compilation options")
 
 # Set paths to AWS and libtorch
 
-set(AWS_LAMBDA_CPP ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/aws-lambda-cpp/build/install)
-set(LIBTORCH ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/pytorch/build_mobile)
+set(LAMBDA "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/aws-lambda-cpp/build/install")
+set(LIBTORCH "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/pytorch/build_mobile")
 
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${AWS_LAMBDA_CPP};${LIBTORCH}")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${LAMBDA};${LIBTORCH}")
 
 # Find torch package
 
 find_package(Torch REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 # Find AWS Lambda package
 
@@ -27,16 +34,27 @@ find_package(aws-lambda-runtime)
 
 add_executable(${PROJECT_NAME} "main.cpp")
 
-# Linking and options
-target_link_libraries(${PROJECT_NAME} PUBLIC -lm AWS::aws-lambda-runtime
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  CXX_STANDARD_17
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT result)
+if(result)
+  set_target_properties(${PROJECT_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILATION_OPTIONS})
+
+# Linking and options (--whole-archive is a current workaround)
+target_link_libraries(${PROJECT_NAME} PRIVATE -lm AWS::aws-lambda-runtime
         -Wl,--whole-archive "${TORCH_LIBRARIES}"
         -Wl,--no-whole-archive
         -lpthread
         ${CMAKE_DL_LIBS})
-target_compile_features(${PROJECT_NAME} PUBLIC "cxx_std_14")
-target_compile_options(${PROJECT_NAME} PUBLIC "-Wall" "-Wextra" "-O2" "-march=native")
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 
 # This line creates a target that packages your binary and zips it up
 aws_lambda_package_target(${PROJECT_NAME})

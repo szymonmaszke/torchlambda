@@ -8,4 +8,5 @@ WORKDIR /home/app
 COPY . /home/app
 
 RUN ./dependencies.sh
-RUN ./build.sh
+
+CMD ["./build.sh"]
