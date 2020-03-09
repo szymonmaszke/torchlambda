@@ -3,7 +3,7 @@ import shutil
 import sys
 import uuid
 
-from . import docker, utils
+from . import docker, general
 
 
 def get_image(args) -> str:
@@ -29,7 +29,7 @@ def get_image(args) -> str:
     if image_exists:
         image: str = args.docker_image
     elif args.build is not None or args.operations is not None:
-        utils.copy_operations(args)
+        general.copy_operations(args)
         image: str = docker.build(args)
     else:
         image: str = "szymonmaszke/altorch:latest"

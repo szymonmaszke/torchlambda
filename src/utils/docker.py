@@ -3,7 +3,7 @@ import shutil
 import sys
 import uuid
 
-from . import utils
+from . import general
 
 
 def check() -> None:
@@ -33,7 +33,7 @@ def image_exists(name: str) -> bool:
 
     """
     return not bool(
-        utils.run(
+        general.run(
             "docker inspect --type=image {}".format(name),
             operation="image existence check.",
             exit_on_failure=False,
@@ -58,7 +58,7 @@ def build(args) -> str:
     str:
         Name of created image
     """
-    utils.run(
+    general.run(
         "docker {} build -t {} {} .".format(
             args.docker_flags, args.docker_image, args.docker_build_flags
         ),
@@ -87,7 +87,7 @@ def run(args, image: str) -> str:
         Name of created container. Consist of altorch prefix and random string
     """
     container_name = "altorch-" + str(uuid.uuid4())
-    utils.run(
+    general.run(
         "docker {} run -v {}:/home/app/main.cpp {} --name {} {}".format(
             args.docker_flags,
             pathlib.Path(args.source).absolute(),
@@ -101,7 +101,7 @@ def run(args, image: str) -> str:
 
 
 def cp(name: str, source: str, destination: str) -> None:
-    utils.run(
+    general.run(
         "docker cp {}:{} {}".format(
             name, pathlib.Path(source).absolute(), pathlib.Path(destination).absolute()
         ),

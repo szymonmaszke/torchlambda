@@ -1,6 +1,6 @@
 import importlib
 
-import arguments
+from . import arguments
 
 
 def main():

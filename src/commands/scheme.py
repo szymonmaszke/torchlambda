@@ -2,8 +2,6 @@ from . import docker, utils
 
 
 def run(args):
-    docker.check()
-
-    with utils.general.message("deployment."):
-        image = utils.deploy.get_image(args)
-        utils.deploy.get_package(image, args)
+    with utils.general.message("creating C++ scheme."):
+        pass
+    # jebać policję
