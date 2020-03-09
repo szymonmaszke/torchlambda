@@ -9,26 +9,27 @@ project(altorch VERSION 0.1.0
   LANGUAGES CXX
 )
 
-
 # Default to highest available C++ version
 
 set(COMPILATION_OPTIONS "" CACHE STRING "User provided compilation options")
 
 # Set paths to AWS and libtorch
 
-set(LAMBDA "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/aws-lambda-cpp/build/install")
+set(AWS_LAMBDA "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/aws-lambda-cpp/build/install")
+set(AWS_SDK "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/aws-sdk-cpp/build/install")
 set(LIBTORCH "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/pytorch/build_mobile")
 
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${LAMBDA};${LIBTORCH}")
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${AWS_LAMBDA};${AWS_SDK};${LIBTORCH}")
 
 # Find torch package
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
-# Find AWS Lambda package
+# Find AWS Lambda & SDK packages
 
 find_package(aws-lambda-runtime)
+find_package(AWSSDK)
 
 # Add executable
 
@@ -49,7 +50,9 @@ endif()
 target_compile_options(${PROJECT_NAME} PRIVATE ${COMPILATION_OPTIONS})
 
 # Linking and options (--whole-archive is a current workaround)
-target_link_libraries(${PROJECT_NAME} PRIVATE -lm AWS::aws-lambda-runtime
+target_link_libraries(${PROJECT_NAME} PRIVATE -lm
+        AWS::aws-lambda-runtime
+        ${AWSSDK_LINK_LIBRARIES}
         -Wl,--whole-archive "${TORCH_LIBRARIES}"
         -Wl,--no-whole-archive
         -lpthread
