@@ -9,6 +9,8 @@ if [ -z "$MAX_JOBS" ]; then
   else
     MAX_JOBS=$(nproc)
   fi
+else
+  MAX_JOBS=1
 fi
 
 git clone https://github.com/awslabs/aws-lambda-cpp &&
