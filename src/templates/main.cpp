@@ -10,62 +10,87 @@
 
 #include <torch/script.h>
 
-std::string concatenate(const std::vector<std::string> &needed_values) {
-  std::string result{"["};
-  for (auto const &s : needed_values) {
-    result += s;
-    result += ", ";
-  }
-  result += "]";
-  return result;
-}
-
-bool values_exist(const Aws::Utils::Json::JsonValue &json_view,
-                  const std::vector<std::string> &needed_values) {
-  for (const auto &value : needed_values)
-    if (!json_view.ValueExists(value))
-      return false;
-
-  return true;
-}
+#include "utils.h"
 
 static aws::lambda_runtime::invocation_response
 handler(const aws::lambda_runtime::invocation_request &request,
         const torch::jit::script::Module &module,
         const Aws::Utils::Base64::Base64::Base64 &transformer) {
 
-  auto json = Aws::Utils::Json::JsonValue{request.payload};
+  /*!
+   *
+   *                 CASE SPECIFIC VALUES
+   *             CHANGE WHAT YOU NEED BELOW
+   *
+   */
+
+  /* Name of field containing tensor data encoded via base64 */
+  constexpr auto data_field = "image";
+
+  /* Define needed fields in request */
+  /* data_field is provided as well as it will be checked with other fields */
+  /* Here channels, width and height are needed for tensor reshape below*/
+  const std::vector<const std::string> required_fields{data_field, "channels",
+                                                       "width", "height"};
+
+  /* Define path to trained model, usually in /bin/model.ptc as specified */
+  constexpr auto model_path = "/bin/model.ptc";
+
+  /* Size of neural network output */
+  /* Can be 1 for binary classification or 10 for multiclass */
+  constexpr std::size_t output_size = 100;
+
+  /*!
+   *
+   *                 ARGUMENT PARSING
+   *             AND ASSERTIONS VALIDATION
+   *
+   */
+
+  const auto json = Aws::Utils::Json::JsonValue{request.payload};
   if (!json.WasParseSuccessful())
     return aws::lambda_runtime::invocation_response::failure(
         "Failed to parse input JSON file.", "InvalidJSON");
 
-  if (!values_exist(json_view, needed_values))
+  const auto json_view = json.View();
+
+  if (!torchlambda::check_fields(json_view, required_fields))
     return aws::lambda_runtime::invocation_response::failure(
-        "One or more of needed values: " + concatenate(needed_values) +
-            " wasn't passed in request.",
+        "One or more of needed fields: " +
+            torchlambda::concatenate(required_fields) +
+            " were not provided in request.",
         "InvalidJSON");
 
-  auto json_view = json.View();
+  /*!
+   *
+   *                 OBTAINING DATA
+   *             AND ASSERTIONS VALIDATION
+   *
+   */
 
-  // Repeat below until all required data is checked to exist
-  // In this case image is required key in passed JSON to Lambda
-  // Also image shape is required (e.g. channels, height, width)
-  const auto base64_data = json_view.GetString("image");
+  /* Get data from JSON view and check whether it is string */
+  const auto base64_data = json_view.GetString(data_field);
   if (!base64_data.IsString())
     return aws::lambda_runtime::invocation_response::failure(
-        "Image should be base64 encoded string.", "InvalidJSON");
+        "Data should be base64 encoded string.", "InvalidJSON");
 
+  /* Create tensor from base64 encoded data passed in request */
   const auto tensor =
       torch::from_blob(transformer.Decode(base64_data).GetUnderlyingData(),
-                       at::IntList({1, channels, width, height}))
-          .toType(at::kFloat) /
-      255.;
+                       /* Specify tensor shape [batch, channels, width, height]
+                          in image case */
+                       at::IntList({1, json_view.GetInteger("channels"),
+                                    json_view.GetInteger("width"),
+                                    json_view.GetInteger("height")}))
+          .toType(at::kFloat);
 
-  auto result = module.forward({tensor}).toTensor().data<float>();
+  /* Add normalization scheme for images? */
+  auto output = module.forward({tensor / 255.}).toTensor();
+  /* Booleans for 0-1 classification, change type appropriately */
+  const bool *result_array = (output > 0.5).data<bool>();
 
-  auto output = ::Base64Encode(bb);
-  return aws::lambda_runtime::invocation_response::success(request.payload,
-                                                           "application/json");
+  return aws::lambda_runtime::invocation_response::success(
+      transformer.Encode(result_array, output_size); "application/json");
 }
 
 int main(int argc, const char *argv[]) {
