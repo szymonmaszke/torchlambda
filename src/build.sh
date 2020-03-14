@@ -2,12 +2,26 @@
 
 # Copy necessary dependencies from build
 
+AWS_COMPONENTS="$1"
+COMPILATION="$2"
+
+CMAKE_ARGS=()
+CMAKE_ARGS+=("-DBUILD_SHARED_LIBS=OFF")
+CMAKE_ARGS+=("-DAWS_COMPONENTS=${AWS_COMPONENTS}")
+
+echo "torchlambda:: Building AWS Lambda .zip package.."
+echo "torchlambda:: Final build arguments:"
+echo "${CMAKE_ARGS[@]}"
+
 mkdir build &&
   cd build &&
-  cmake3 .. &&
+  cmake3 -E env CXXFLAGS="${COMPILATION}" cmake3 "${CMAKE_ARGS[@]}" .. &&
   cmake3 --build . --config Release &&
-  make aws-lambda-package-tagger
+  make aws-lambda-package-torchlambda
 
-printf "\n\n############### APP SIZE ###############\n\n"
-du -sh /home/app/build/tagger
-printf "\n\n################# END ##################\n\n"
+printf "\ntorchlambda:: App size:\n\n"
+du -sh /usr/local/build/torchlambda
+
+printf "\ntorchlambda:: Zipped app size:\n\n"
+du -sh /usr/local/build/torchlambda.zip
+printf "\ntorchlambda:: Deployment finished successfully."

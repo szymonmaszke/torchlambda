@@ -1,11 +1,11 @@
 import importlib
 
-from . import arguments
+from . import arguments, commands
 
 
 def main():
     args = arguments.parser.get()
-    module = importlib.import_module("commands." + args.command)
+    module = importlib.import_module(".commands." + args.command, package=__package__)
     module.run(args)
 
 

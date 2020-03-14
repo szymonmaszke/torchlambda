@@ -9,28 +9,23 @@ project(torchlambda VERSION 0.1.0
   LANGUAGES CXX
 )
 
-# Set paths to AWS and libtorch
+set(AWS_COMPONENTS "core" CACHE STRING "AWS-SDK Components used by user")
 
-# AWS SDK is installed in /usr/local so it's found correctly.
-# It is a required workaround, see e.g. https://github.com/aws/aws-sdk-cpp/issues/1156
-set(AWS_LAMBDA "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/aws-lambda-cpp/build/install")
-set(LIBTORCH "${CMAKE_CURRENT_SOURCE_DIR}/dependencies/pytorch/build_mobile")
-
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${AWS_LAMBDA};${LIBTORCH}")
+# All dependencies are in /usr/local already
 
 # Find torch package
-
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
-# Find AWS Lambda & SDK packages
+# Find AWS Lambda
+find_package(aws-lambda-runtime REQUIRED)
 
-find_package(aws-lambda-runtime)
-find_package(AWSSDK)
+# AWS_COMPONENTS is already set during image build
+find_package(AWSSDK REQUIRED COMPONENTS ${AWS_COMPONENTS})
 
-# Add executable
-
+# Add all C/C++ files
 file(GLOB_RECURSE DEPLOYMENT_SRC
+    "${CMAKE_CURRENT_SOURCE_DIR}/user_code/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/user_code/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/user_code/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/user_code/*.c"

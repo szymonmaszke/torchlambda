@@ -8,12 +8,12 @@ from . import docker, general
 
 def get_image(args) -> str:
     """
-    Get ALTorch deployment image.
+    Get torchlambda deployment image.
 
-    If image specified by --docker_image exists locally it's name will be returned.
+    If image specified by --image exists locally it's name will be returned.
     Else if image should be build from source it is built and it's name is returned
-    as specified by --docker_image.
-    Otherwise pre-built ALTorch:latest image will be used.
+    as specified by --image.
+    Otherwise pre-built torchlambda:latest image will be used.
 
     Parameters
     ----------
@@ -25,24 +25,33 @@ def get_image(args) -> str:
     str:
         Name of obtained image
     """
-    image_exists: bool = docker.image_exists(args.docker_image)
-    if image_exists:
-        image: str = args.docker_image
-    elif args.build is not None or args.operations is not None:
-        general.copy_operations(args)
-        image: str = docker.build(args)
-    else:
-        image: str = "szymonmaszke/altorch:latest"
 
-    return image
+    def _custom_build(args):
+        flags = ("pytorch", "aws", "operations", "components", "build")
+        return any(getattr(args, flag) is not None for flag in flags)
+
+    image_exists: bool = docker.image_exists(args.image)
+    if image_exists:
+        print(
+            "torchlambda:: Image {} was found locally and will be used.".format(
+                args.image
+            )
+        )
+        return args.image
+    print("torchlambda:: Image {} was not found locally.".format(args.image))
+    if _custom_build(args):
+        general.copy_operations(args)
+        return docker.build(args)
+
+    print("torchlambda:: Default szymonmaszke/torchlambda:latest image will be used.")
+    return "szymonmaszke/torchlambda:latest"
 
 
 def get_package(args, image):
-    """
-    Generate deployment package by running provided image.
+    """Generate deployment package by running provided image.
 
     Deployment package will be .zip file containing compiled source code
-    and statically linked possibly minimalistic PyTorch.
+    and statically linked AWS and Libtorch (with optional user-specified flags).
 
     Parameters
     ----------
@@ -52,8 +61,15 @@ def get_package(args, image):
         Name of image used to create container.
     """
     container: str = docker.run(args, image)
-    docker.copy(
-        container,
-        "/home/app/build/altorch.zip",
-        pathlib.Path(args.destination).absolute(),
-    )
+    with docker.rm(args, container):
+        destination = pathlib.Path(args.destination).absolute()
+        if not destination.is_file():
+            docker.cp(
+                args, container, "/usr/local/build/torchlambda.zip", destination,
+            )
+        else:
+            print(
+                "torchlambda:: Error: path {} exists. Please run the script again with the same --image argument.".format(
+                    destination
+                )
+            )

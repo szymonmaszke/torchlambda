@@ -79,8 +79,8 @@ handler(const aws::lambda_runtime::invocation_request &request,
   /* Byte tensors are returned hence those should be usually casted to Float */
   auto output = module.forward({tensor.toType(at::kFloat) / 255.}).toTensor();
   /* Percentage values for each value as character */
-  const unsigned char *result_array =
-      (output * 100).data_ptr<const unsigned char>();
+  const unsigned char *result_array = static_cast<const unsigned char *>(
+      (torch::sigmoid(output) * 100).data_ptr());
 
   return aws::lambda_runtime::invocation_response::success(
       transformer.Encode(Aws::Utils::ByteBuffer{result_array, output_size}),

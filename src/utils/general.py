@@ -4,6 +4,11 @@ import shlex
 import shutil
 import subprocess
 import sys
+import typing
+
+
+def parse_none(*args):
+    return tuple(arg if arg is not None else "" for arg in args)
 
 
 @contextlib.contextmanager
@@ -19,12 +24,19 @@ def message(operation: str):
         String describing operation to be run.
 
     """
-    print("ALTorch:: Started {}".format(operation), file=sys.stderr)
+    print("torchlambda:: Started {}".format(operation), file=sys.stderr)
     yield
-    print("ALTorch:: Finished {}".format(operation), file=sys.stderr)
+    print("torchlambda:: Finished {}".format(operation), file=sys.stderr)
 
 
-def run(command: str, operation: str, exit_on_failure: bool = True) -> int:
+def run(
+    command: str,
+    operation: str,
+    silent: bool,
+    exit_on_failure: bool = True,
+    no_stdout: bool = False,
+    no_stderr: bool = False,
+) -> int:
     """
     Run specific cli command, parse and return it's results.
 
@@ -44,13 +56,25 @@ def run(command: str, operation: str, exit_on_failure: bool = True) -> int:
         Value returned by command
 
     """
-    with _message(operation):
+
+    def _set_streams() -> typing.Dict:
+        kwargs = {}
+        if no_stdout or silent:
+            kwargs["stdout"] = subprocess.DEVNULL
+        if no_stderr or silent:
+            kwargs["stderr"] = subprocess.DEVNULL
+        return kwargs
+
+    with message(operation):
         return_value = subprocess.call(
-            shlex.split(command), cwd=pathlib.Path(__file__).absolute().parent
+            shlex.split(command),
+            cwd=pathlib.Path(__file__).absolute().parent.parent,
+            **_set_streams()
         )
         if return_value != 0 and exit_on_failure:
             print(
-                "ALTorch:: Error: Failed during {}".format(operation), file=sys.stderr,
+                "torchlambda:: Error: Failed during {}".format(operation),
+                file=sys.stderr,
             )
             exit(1)
 
@@ -70,7 +94,13 @@ def copy_operations(args) -> None:
 
     """
     if args.operations is not None:
-        shutil.copyfile(
-            pathlib.Path(args.operations).absolute(),
-            pathlib.Path(__file__).parent.absolute() / "model.yaml",
-        )
+        operations_path = pathlib.Path(args.operations).absolute()
+        if operations_path.is_file():
+            print("torchlambda:: Copying custom model operations...")
+            shutil.copyfile(
+                pathlib.Path(args.operations).absolute(),
+                pathlib.Path(__file__).absolute().parent.parent / "model.yaml",
+            )
+        else:
+            print("torchlambda:: Error, provided operations are not a file!")
+            exit(1)

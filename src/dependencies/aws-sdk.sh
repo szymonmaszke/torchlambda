@@ -17,10 +17,12 @@ fi
 
 CMAKE_ARGS=()
 
+CMAKE_ARGS+=("-DENABLE_TESTING=OFF")
 CMAKE_ARGS+=("-DBUILD_ONLY=core")
 
-CMAKE_ARGS+=("-DBUILD_SHARED_LIBS=OFF")
-CMAKE_ARGS+=("-DENABLE_UNITY_BUILD=ON")
+CMAKE_ARGS+=("-DENABLE_TESTING=OFF")
+
+CMAKE_ARGS+=("-DMINIMIZE_SIZE=ON")
 
 CMAKE_ARGS+=("-DCUSTOM_MEMORY_MANAGEMENT=OFF")
 CMAKE_ARGS+=("-DCPP_STANDARD=17")
@@ -31,10 +33,17 @@ if [ -x "$(command -v ninja)" ]; then
   CMAKE_ARGS+=("-GNinja")
 fi
 
-echo "- torchlambda: Cloning and building AWS C++ SDK..."
+CMAKE_ARGS+=("-DBUILD_SHARED_LIBS=OFF")
+
+echo "torchlambda:: AWS C++ SDK build arguments:"
+echo "${CMAKE_ARGS[@]}"
+
+echo "torchlambda:: Cloning and building AWS C++ SDK..."
 git clone https://github.com/aws/aws-sdk-cpp.git &&
   cd aws-sdk-cpp &&
   mkdir -p build &&
   cd build &&
   cmake3 .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local "${CMAKE_ARGS[@]}" &&
   cmake3 --build . --target install -- "-j${MAX_JOBS}"
+
+echo "torchlambda:: AWS C++ SDK built successfully."

@@ -1,1 +1,1 @@
-from . import deploy, docker, general
+from . import deploy, docker, general, model

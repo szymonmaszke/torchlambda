@@ -1,9 +1,9 @@
-from . import docker, utils
+from .. import utils
 
 
 def run(args):
-    docker.check()
+    utils.docker.check()
 
     with utils.general.message("deployment."):
         image = utils.deploy.get_image(args)
-        utils.deploy.get_package(image, args)
+        utils.deploy.get_package(args, image)
