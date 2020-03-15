@@ -8,6 +8,6 @@ def run(args):
     with utils.general.message("creating C++ scheme at {}.".format(destination)):
         utils.general.run(
             "cp -r ./templates {}".format(destination),
-            operation="copying main.cpp and utils.h",
+            operation="copying CPP sources",
             silent=args.silent,
         )
