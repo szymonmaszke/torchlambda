@@ -1,47 +1,24 @@
-#include <iostream>
-#include <memory>
-#include <string>
-
 #include <aws/core/Aws.h>
-#include <aws/core/utils/base64/Base64.h>        // Base64
-#include <aws/core/utils/json/JsonSerializer.h>  // JSON
-#include <aws/core/utils/memory/stl/AWSString.h> // AWS Strings
+#include <aws/core/utils/base64/Base64.h>
+#include <aws/core/utils/json/JsonSerializer.h>
+#include <aws/core/utils/memory/stl/AWSString.h>
 
 #include <aws/lambda-runtime/runtime.h>
 
 #include <torch/script.h>
-
-#include "torchlambda.h"
+#include <torch/torch.h>
 
 static aws::lambda_runtime::invocation_response
 handler(const aws::lambda_runtime::invocation_request &request,
         torch::jit::script::Module &module,
         const Aws::Utils::Base64::Base64 &transformer) {
 
-  /*!
-   *
-   *                 CASE SPECIFIC VALUES
-   *             CHANGE WHAT YOU NEED BELOW
-   *
-   */
-
-  /* Name of field containing tensor data encoded via base64 */
-  constexpr auto data_field = "image";
-
-  /* Define needed fields in request */
-  /* data_field is provided as well as it will be checked with other fields */
-  /* Here channels, width and height are needed for tensor reshape below*/
-  const std::vector<const char *> required_fields{data_field, "channels",
-                                                  "width", "height"};
-
-  /* Size of neural network output */
-  /* Can be 1 for binary classification or 10 for multiclass */
-  constexpr std::size_t output_size = 100;
+  /* Name of field containing base64 encoded data */
+  const Aws::String data_field{"data"};
 
   /*!
    *
-   *                 REQUEST PARSING
-   *             AND ASSERTIONS VALIDATION
+   *               PARSE AND VALIDATE REQUEST
    *
    */
 
@@ -51,46 +28,49 @@ handler(const aws::lambda_runtime::invocation_request &request,
         "Failed to parse input JSON file.", "InvalidJSON");
 
   const auto json_view = json.View();
-  if (!torchlambda::check_fields(json_view, required_fields))
+  if (!json_view.KeyExists(data_field))
     return aws::lambda_runtime::invocation_response::failure(
-        "One or more of needed fields: " +
-            torchlambda::concatenate(required_fields) +
-            " were not provided in request.",
-        "InvalidJSON");
+        "Required data was not provided.", "InvalidJSON");
 
   /*!
    *
-   *                 OBTAINING DATA
-   *             AND ASSERTIONS VALIDATION
+   *            LOAD DATA AND TRANSFORM TO TENSOR
    *
    */
 
   /* Get data from JSON view and check whether it is string */
   const auto base64_data = json_view.GetString(data_field);
 
-  /* Create tensor from base64 encoded data passed in request */
-  const auto tensor = torchlambda::base64_to_tensor(
-      transformer, base64_data, json_view,
-      /* Pass desired shape of tensor below */
-      /* Either ints or names of JSON fields supported */
-      /* Here batch x channels x width x height */
-      1, "channels", "width", "height");
+  /* Create Byte tensor from base64 encoded data passed in request */
+  const auto tensor =
+      torch::from_blob(transformer.Decode(base64_data).GetUnderlyingData(),
+                       /* Shape of tensor, [batch, channels, width, height] */
+                       torch::IntList({1, 3, 224, 224}));
 
-  /* Byte tensors are returned hence those should be usually casted to Float */
-  auto output = module.forward({tensor.toType(at::kFloat) / 255.}).toTensor();
-  /* Percentage values for each value as character */
-  const unsigned char *result_array = static_cast<const unsigned char *>(
-      (torch::sigmoid(output) * 100).data_ptr());
+  /* Normalize Tensor using ImageNet mean and stddev */
+  auto output = module
+                    .forward({torch::data::transforms::Normalize<>{
+                        {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(
+                        tensor.toType(torch::kFloat32) / 255.)})
+                    .toTensor();
 
+  /* Get label using argmax */
+  const int label = torch::argmax(output).item<int>();
+
+  /* Return statusCode and found label */
   return aws::lambda_runtime::invocation_response::success(
-      transformer.Encode(Aws::Utils::ByteBuffer{result_array, output_size}),
+      Aws::Utils::Json::JsonValue{}
+          .WithInteger("statusCode", 200)
+          .WithInteger("label", label)
+          .View()
+          .WriteCompact(),
       "application/json");
 }
 
 int main(int argc, const char *argv[]) {
   /*!
    *
-   *                          MODEL LOADING
+   *                          PYTORCH MODEL
    *
    */
   /* Disable gradient as it's not needed for inference */
@@ -101,6 +81,13 @@ int main(int argc, const char *argv[]) {
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
 
   module.eval();
+
+  /*!
+   *
+   *                        INITIALIZE AWS SDK
+   *                    & REGISTER REQUEST HANDLER
+   *
+   */
 
   Aws::SDKOptions options;
   Aws::InitAPI(options);
