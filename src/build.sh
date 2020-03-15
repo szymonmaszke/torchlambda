@@ -9,7 +9,7 @@ CMAKE_ARGS=()
 CMAKE_ARGS+=("-DBUILD_SHARED_LIBS=OFF")
 CMAKE_ARGS+=("-DAWS_COMPONENTS=${AWS_COMPONENTS}")
 
-echo "torchlambda:: Building AWS Lambda .zip package.."
+echo "torchlambda:: Building AWS Lambda .zip package..."
 echo "torchlambda:: Final build arguments:"
 echo "${CMAKE_ARGS[@]}"
 
