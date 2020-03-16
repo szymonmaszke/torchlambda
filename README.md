@@ -23,20 +23,15 @@ Trait / Tool | torchlambda | [fastai Lambda](https://course.fast.ai/deployment_a
 |------------|-------------|--------------------------------------------------------------------|------------------|--------------------|
 __Autoscaling__ |:heavy_check_mark: | :heavy_check_mark: | with [Kubernetes](https://kubernetes.io/) | with [Kubernetes](https://kubernetes.io/) |
 __Light/Heavy load__ | Light  | Light | Heavy/Both | Both |
+__GPU Support__ | :x: | :x: | :heavy_check_mark: | :heavy_check_mark: |
 __Serverless__ |:heavy_check_mark: | :heavy_check_mark: | :x: | :x: |
 __Required services__ | AWS Lambda | AWS Lambda, AWS S3 | Kubernetes Cluster & cloud provider | Deployable in various settings |
 __Multiple frameworks__ | :x:  | :x: | :heavy_check_mark: | :x: |
-__Latest framework__ [^1] | :heavy_check_mark: | :x: | :x: | :heavy_check_mark: |
+__Latest framework__ <sup>[1](#footnote1)</sup> | :heavy_check_mark: | :x: | :x: | :heavy_check_mark: |
 __Version (higher more mature)__ | 0.1.0 | N/A | [1.0](https://github.com/kubeflow/kubeflow/releases/tag/v1.0) | 2.1.0 |
-__Customizable dependencies__ [^2] | :heavy_check_mark: | :x: | :x: | :x: |
-__Deployment size__ [^3]| ~30Mb| +1Gb | N/A | ~67Mb[^4] |
+__Customizable dependencies__ <sup>[2](#footnote2)</sup> | :heavy_check_mark: | :x: | :x: | :x: |
+__Deployment size__ <sup>[3](#footnote3)</sup>| ~30Mb| +1Gb | N/A | ~67Mb<sup>[4](#footnote4)</sup> |
 
-[^1]: Support for latest version of it's main DL framework or main frameworks if multiple
-supported
-[^2]: Project dependencies shape can be easily cutomized. In torchlambda case it is customizable
-build of [`libtorch`](https://pytorch.org/cppdocs/) and [`AWS C++ SDK`](https://aws.amazon.com/sdk-for-cpp/)
-[^3]: Necessary size of code and dependencies to deploy model
-[^4]: Based on [Dockerfile size](https://hub.docker.com/r/tensorflow/serving)
 
 
 # Installation
@@ -319,3 +314,15 @@ __Congratulations, you have deployed ResNet18 classifier using only AWS Lambda i
 # Contributing
 
 If you find issue or would like to see some functionality (or implement one), please [open new Issue](https://help.github.com/en/articles/creating-an-issue) or [create Pull Request](https://help.github.com/en/articles/creating-a-pull-request-from-a-fork).
+
+#### Footnotes
+
+<a name="footnote1">1</a>. Support for latest version of it's main DL framework or main frameworks if multiple
+supported
+
+<a name="footnote2">2</a>. Project dependencies shape can be easily cutomized. In torchlambda case it is customizable
+build of [`libtorch`](https://pytorch.org/cppdocs/) and [`AWS C++ SDK`](https://aws.amazon.com/sdk-for-cpp/)
+
+<a name="footnote2">3</a>. Necessary size of code and dependencies to deploy model
+
+<a name="footnote2">4</a>. Based on [Dockerfile size](https://hub.docker.com/r/tensorflow/serving)
