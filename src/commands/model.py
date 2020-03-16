@@ -20,4 +20,11 @@ def run(args):
                 )
                 exit(1)
 
-            file.write(source, "{}/{}".format(args.directory, source.name))
+            if args.directory is not None:
+                pathlib.Path(args.directory)
+            file.write(
+                source,
+                pathlib.Path(args.directory) / args.source
+                if args.directory is not None
+                else args.source,
+            )

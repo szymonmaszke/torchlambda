@@ -183,9 +183,10 @@ def model(subparsers) -> None:
     parser.add_argument(
         "--directory",
         required=False,
-        default="bin",
-        help="""Directory where model will be stored. Usually you don't want to change that."""
-        """\nDefault: "bin" """,
+        default=None,
+        help="Directory where model will be stored. Usually you don't want to change that.\n"
+        "Model will be unpacked to /opt + your specified directory\n"
+        "Default: None (model will be placed /opt)",
     )
 
     parser.add_argument(
