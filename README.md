@@ -28,7 +28,7 @@ __Serverless__ |:heavy_check_mark: | :heavy_check_mark: | :x: | :x: |
 __Required services__ | AWS Lambda | AWS Lambda, AWS S3 | Kubernetes Cluster & cloud provider | Deployable in various settings |
 __Multiple frameworks__ | :x:  | :x: | :heavy_check_mark: | :x: |
 __Latest framework__ <sup>[1](#footnote1)</sup> | :heavy_check_mark: | :x: | :x: | :heavy_check_mark: |
-__Version (higher more mature)__ | 0.1.0 | N/A | [1.0](https://github.com/kubeflow/kubeflow/releases/tag/v1.0) | 2.1.0 |
+__Version (higher more mature)__ | 0.1.0 | N/A | [1.0](https://github.com/kubeflow/kubeflow/releases/tag/v1.0) | [2.1.0](https://github.com/tensorflow/serving/releases/tag/2.1.0) |
 __Customizable dependencies__ <sup>[2](#footnote2)</sup> | :heavy_check_mark: | :x: | :x: | :x: |
 __Deployment size__ <sup>[3](#footnote3)</sup>| ~30Mb| +1Gb | N/A | ~67Mb<sup>[4](#footnote4)</sup> |
 
