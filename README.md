@@ -119,7 +119,6 @@ idea to make this section even easier.
 #include <torch/script.h>
 #include <torch/torch.h>
 
-/* Here we handle our request */
 static aws::lambda_runtime::invocation_response
 handler(torch::jit::script::Module &module,
         const Aws::Utils::Base64::Base64 &transformer,
@@ -153,7 +152,8 @@ handler(torch::jit::script::Module &module,
   const auto base64_data = json_view.GetString(data_field);
   Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
 
-  /* Copy data and move it to tensor (is there a more elegant solution?) */
+  /* Copy data and move it to tensor (is there an easier way?) */
+  /* Array holds channels * width * height, input your values below */
   float data[3 * 64 * 64];
   std::copy(decoded.GetUnderlyingData(),
             decoded.GetUnderlyingData() + decoded.GetLength() - 1, data);
@@ -163,7 +163,7 @@ handler(torch::jit::script::Module &module,
                        {
                            static_cast<long int>(decoded.GetLength()),
                        })
-          /* Input your data shape */
+          /* Input your data shape for reshape including batch */
           .reshape({1, 3, 64, 64})
           .toType(torch::kFloat32) /
       255.0;
@@ -189,17 +189,15 @@ handler(torch::jit::script::Module &module,
           .View()
           .WriteCompact(),
       "application/json");
-
 }
-
-/* Here we setup model so it won't be reloaded during every request */
 
 int main() {
   /* Inference doesn't need gradient, let's turn it off */
   torch::NoGradGuard no_grad_guard{};
 
   /* Change name/path to your model if you so desire */
-  constexpr auto model_path = "/bin/model.ptc";
+  /* Layers are unpacked to /opt, so you are better off keeping it */
+  constexpr auto model_path = "/opt/model.ptc";
 
   /* You could add some checks whether the module is loaded correctly */
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
