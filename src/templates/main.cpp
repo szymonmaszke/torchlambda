@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <iterator>
+
 #include <aws/core/Aws.h>
 #include <aws/core/utils/base64/Base64.h>
 #include <aws/core/utils/json/JsonSerializer.h>
@@ -9,9 +12,9 @@
 #include <torch/torch.h>
 
 static aws::lambda_runtime::invocation_response
-handler(const aws::lambda_runtime::invocation_request &request,
-        torch::jit::script::Module &module,
-        const Aws::Utils::Base64::Base64 &transformer) {
+handler(torch::jit::script::Module &module,
+        const Aws::Utils::Base64::Base64 &transformer,
+        const aws::lambda_runtime::invocation_request &request) {
 
   /* Name of field containing base64 encoded data */
   const Aws::String data_field{"data"};
@@ -34,50 +37,60 @@ handler(const aws::lambda_runtime::invocation_request &request,
 
   /*!
    *
-   *            LOAD DATA AND TRANSFORM TO TENSOR
+   *            LOAD DATA, TRANSFORM TO TENSOR, NORMALIZE
    *
    */
 
-  /* Get data from JSON view and check whether it is string */
   const auto base64_data = json_view.GetString(data_field);
+  Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
 
-  /* Create Byte tensor from base64 encoded data passed in request */
-  const auto tensor =
-      torch::from_blob(transformer.Decode(base64_data).GetUnderlyingData(),
-                       /* Shape of tensor, [batch, channels, width, height] */
-                       torch::IntList({1, 3, 224, 224}));
+  /* Copy data and move it to tensor (is there an easier way?) */
+  float data[3 * 64 * 64];
+  std::copy(decoded.GetUnderlyingData(),
+            decoded.GetUnderlyingData() + decoded.GetLength() - 1, data);
 
-  /* Normalize Tensor using ImageNet mean and stddev */
-  auto output = module
-                    .forward({torch::data::transforms::Normalize<>{
-                        {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(
-                        tensor.toType(torch::kFloat32) / 255.)})
-                    .toTensor();
+  torch::Tensor tensor =
+      torch::from_blob(data,
+                       {
+                           static_cast<long int>(decoded.GetLength()),
+                       })
+          /* Input your data shape */
+          .reshape({1, 3, 64, 64})
+          .toType(torch::kFloat32) /
+      255.0;
 
-  /* Get label using argmax */
+  /* Normalize tensor with ImageNet mean and stddev */
+  torch::Tensor normalized_tensor = torch::data::transforms::Normalize<>{
+      {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(tensor);
+
+  /*!
+   *
+   *              MAKE INFERENCE AND RETURN JSON RESPONSE
+   *
+   */
+
+  /* {} will be casted to std::vector<torch::jit::IValue> under the hood */
+  auto output = module.forward({normalized_tensor}).toTensor();
   const int label = torch::argmax(output).item<int>();
 
-  /* Return statusCode and found label */
+  /* Return JSON with field label containing predictions*/
   return aws::lambda_runtime::invocation_response::success(
       Aws::Utils::Json::JsonValue{}
-          .WithInteger("statusCode", 200)
           .WithInteger("label", label)
           .View()
           .WriteCompact(),
       "application/json");
 }
 
-int main(int argc, const char *argv[]) {
-  /*!
-   *
-   *                          PYTORCH MODEL
-   *
-   */
-  /* Disable gradient as it's not needed for inference */
+int main() {
+  /* Inference doesn't need gradient, let's turn it off */
   torch::NoGradGuard no_grad_guard{};
 
-  /* Define path to trained model, usually in /bin/model.ptc as specified */
-  constexpr auto model_path = "/bin/model.ptc";
+  /* Change name/path to your model if you so desire */
+  /* Layers are unpacked to /opt, so you are better off keeping it */
+  constexpr auto model_path = "/opt/bin/model.ptc";
+
+  /* You could add some checks whether the module is loaded correctly */
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
 
   module.eval();
@@ -92,17 +105,14 @@ int main(int argc, const char *argv[]) {
   Aws::SDKOptions options;
   Aws::InitAPI(options);
   {
-    // Base64 transformer of input data
     const Aws::Utils::Base64::Base64 transformer{};
     const auto handler_fn =
         [&module,
          &transformer](const aws::lambda_runtime::invocation_request &request) {
-          return handler(request, module, transformer);
+          return handler(module, transformer, request);
         };
-
     aws::lambda_runtime::run_handler(handler_fn);
   }
   Aws::ShutdownAPI(options);
-
   return 0;
 }
