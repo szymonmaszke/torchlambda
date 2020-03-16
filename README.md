@@ -106,62 +106,125 @@ request improvements in [Issues]() or make a [Pull Request]() if you have an
 idea to make this section even easier.
 
 ```cpp
-/* Here we handle our request */
+#include <algorithm>
+#include <iterator>
 
+#include <aws/core/Aws.h>
+#include <aws/core/utils/base64/Base64.h>
+#include <aws/core/utils/json/JsonSerializer.h>
+#include <aws/core/utils/memory/stl/AWSString.h>
+
+#include <aws/lambda-runtime/runtime.h>
+
+#include <torch/script.h>
+#include <torch/torch.h>
+
+/* Here we handle our request */
 static aws::lambda_runtime::invocation_response
-handler(const aws::lambda_runtime::invocation_request &request,
-        torch::jit::script::Module &module,
-        const Aws::Utils::Base64::Base64 &transformer) {
+handler(torch::jit::script::Module &module,
+        const Aws::Utils::Base64::Base64 &transformer,
+        const aws::lambda_runtime::invocation_request &request) {
+
+  /* Name of field containing base64 encoded data */
+  const Aws::String data_field{"data"};
+
+  /*!
+   *
+   *               PARSE AND VALIDATE REQUEST
+   *
+   */
 
   const auto json = Aws::Utils::Json::JsonValue{request.payload};
+  if (!json.WasParseSuccessful())
+    return aws::lambda_runtime::invocation_response::failure(
+        "Failed to parse input JSON file.", "InvalidJSON");
+
+  const auto json_view = json.View();
+  if (!json_view.KeyExists(data_field))
+    return aws::lambda_runtime::invocation_response::failure(
+        "Required data was not provided.", "InvalidJSON");
+
+  /*!
+   *
+   *            LOAD DATA, TRANSFORM TO TENSOR, NORMALIZE
+   *
+   */
+
   const auto base64_data = json_view.GetString(data_field);
+  Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
 
-  /* Create Byte tensor from base64 encoded data passed in request */
-  const auto tensor =
-      torch::from_blob(transformer.Decode(base64_data).GetUnderlyingData(),
-                       /* Shape of tensor, [batch, channels, width, height] */
-                       torch::IntList({1, 3, 224, 224}));
+  /* Copy data and move it to tensor (is there a more elegant solution?) */
+  float data[3 * 64 * 64];
+  std::copy(decoded.GetUnderlyingData(),
+            decoded.GetUnderlyingData() + decoded.GetLength() - 1, data);
 
-  /* Normalize Tensor using ImageNet mean and stddev */
-  auto output = module
-                    .forward({torch::data::transforms::Normalize<>{
-                        {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(
-                        tensor.toType(torch::kFloat32) / 255.)})
-                    .toTensor();
+  torch::Tensor tensor =
+      torch::from_blob(data,
+                       {
+                           static_cast<long int>(decoded.GetLength()),
+                       })
+          /* Input your data shape */
+          .reshape({1, 3, 64, 64})
+          .toType(torch::kFloat32) /
+      255.0;
 
-  /* Get label using argmax */
+  /* Normalize tensor with ImageNet mean and stddev */
+  torch::Tensor normalized_tensor = torch::data::transforms::Normalize<>{
+      {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(tensor);
+
+  /*!
+   *
+   *              MAKE INFERENCE AND RETURN JSON RESPONSE
+   *
+   */
+
+  /* {} will be casted to std::vector<torch::jit::IValue> under the hood */
+  auto output = module.forward({normalized_tensor}).toTensor();
   const int label = torch::argmax(output).item<int>();
 
-  /* Return predicted label */
+  /* Return JSON with field label containing predictions*/
   return aws::lambda_runtime::invocation_response::success(
       Aws::Utils::Json::JsonValue{}
           .WithInteger("label", label)
           .View()
           .WriteCompact(),
       "application/json");
+
 }
 
-/* Here one should load model, initialize API and create transformer*/
+/* Here we setup model so it won't be reloaded during every request */
 
-int main(int argc, const char *argv[]) {
+int main() {
+  /* Inference doesn't need gradient, let's turn it off */
+  torch::NoGradGuard no_grad_guard{};
+
+  /* Change name/path to your model if you so desire */
   constexpr auto model_path = "/bin/model.ptc";
+
+  /* You could add some checks whether the module is loaded correctly */
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
+
+  module.eval();
+
+  /*!
+   *
+   *                        INITIALIZE AWS SDK
+   *                    & REGISTER REQUEST HANDLER
+   *
+   */
 
   Aws::SDKOptions options;
   Aws::InitAPI(options);
   {
-    // Base64 transformer of input data
     const Aws::Utils::Base64::Base64 transformer{};
     const auto handler_fn =
         [&module,
          &transformer](const aws::lambda_runtime::invocation_request &request) {
-          return handler(request, module, transformer);
+          return handler(module, transformer, request);
         };
-
     aws::lambda_runtime::run_handler(handler_fn);
   }
   Aws::ShutdownAPI(options);
-
   return 0;
 }
 ```
@@ -169,7 +232,7 @@ int main(int argc, const char *argv[]) {
 </details>
 
 
-## 3. Package your source with `torchlambda deploy`
+## 3. Package your source with torchlambda deploy
 
 Now we have our model and source code. It's time to deploy it as AWS Lambda
 ready `.zip` package.
@@ -177,7 +240,7 @@ ready `.zip` package.
 Run from command line:
 
 ```shell
-$ torchlambda deploy path/to/torchlambda/folder --compilation "-Wall -O2"
+$ torchlambda deploy ./torchlambda --compilation "-Wall -O2"
 ```
 
 Above will create `torchlambda.zip` file ready for deploy.
@@ -196,10 +259,10 @@ As the above source code is roughly `30Mb` in size (AWS Lambda has `250Mb` limit
 we can put our model as additional layer. To create it run:
 
 ```shell
-$ torchlambda model path/to/model.ptc --destination "model.zip"
+$ torchlambda model ./model.ptc --destination "model.zip"
 ```
 
-You will receive `model.zip` layer in your current working directory.
+You will receive `model.zip` layer in your current working directory (`--destination` is optional).
 
 ## 5. Deploy to AWS Lambda
 
@@ -231,7 +294,7 @@ $ cat trust-policy.json
 Run from your shell:
 
 ```shell
-$ aws iam create-role --role-name lambda-demo --assume-role-policy-document file://trust-policy.json
+$ aws iam create-role --role-name demo --assume-role-policy-document file://trust-policy.json
 ```
 
 Note down the role `Arn` returned to you after running that command, it will be needed during next step.
@@ -252,17 +315,17 @@ $ aws lambda create-function --function-name demo \
 We already have our `ResNet18` packed appropriately, run the following:
 
 ```shell
-aws lambda publish-layer-version --layer-name model \
+$ aws lambda publish-layer-version --layer-name model \
   --description "Resnet18 neural network model" \
   --license-info "MIT" \
   --zip-file fileb://model.zip
 ```
 
-Please save the `Arn` just like in step `5.2` and insert it below to add this layer
+Please save the `LayerVersionArn` similar to step `5.2` and insert it below to add this layer
 to function from step `5.3`:
 
 ```shell
-aws lambda update-function-configuration \
+$ aws lambda update-function-configuration \
   --function-name demo \
   --layers <specify layer arn from above here>
 ```
@@ -298,7 +361,7 @@ subprocess.call(shlex.split(command))
 Run above script:
 
 ```shell
-$ python request.py torchlambda-function output.txt
+$ python request.py demo output.txt
 ```
 
 You should get the following response in `output.txt` (your label may vary):
