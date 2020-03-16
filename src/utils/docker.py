@@ -82,7 +82,10 @@ def build(args) -> str:
     )
     command += _add_build_arg("PYTORCH", args.pytorch)
     command += _add_build_arg(
-        "AWS", args.aws + [_add_components_to_build(args.components)]
+        "AWS",
+        [_add_components_to_build(args.components)] + args.aws
+        if args.aws is not None
+        else [],
     )
     command += "."
     general.run(command, operation="custom PyTorch build.", silent=args.silent)
