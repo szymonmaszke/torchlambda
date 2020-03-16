@@ -108,14 +108,19 @@ def run(args, image: str) -> str:
     """
 
     def _add_components(components):
-        if components is not None:
-            return '"' + ";".join(args.components) + '"'
-        return '"core"'
+        return (
+            '"' + ";".join(args.components) + '"'
+            if components is not None
+            else '"core"'
+        )
+
+    def _compilation(args):
+        return "" if args.compilation is None else '"' + args.compilation + '"'
 
     container_name = "torchlambda-" + str(uuid.uuid4())
     source_directory = pathlib.Path(args.source).absolute()
     if source_directory.is_dir():
-        command = "docker {} run {} -v {}:/usr/local/user_code --name {} {} {} {}".format(
+        command = "docker {} run {} -v {}:/usr/local/user_code --name {} {} {} ".format(
             *general.parse_none(
                 args.docker,
                 args.run,
@@ -123,9 +128,10 @@ def run(args, image: str) -> str:
                 container_name,
                 image,
                 _add_components(args.components),
-                '"' + args.compilation + '"',
             )
         )
+
+        command += _compilation(args)
 
         general.run(
             command,
@@ -158,5 +164,5 @@ def rm(args, name: str) -> None:
         general.run(
             "docker rm {}".format(name),
             operation="removing created docker container named {}.".format(name),
-            silent=args.silent,
+            silent=True,
         )
