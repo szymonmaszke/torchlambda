@@ -1,6 +1,7 @@
 import importlib
 
 from . import arguments, commands
+from ._version import __version__
 
 
 def main():

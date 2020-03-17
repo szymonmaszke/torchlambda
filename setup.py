@@ -2,12 +2,20 @@ import pathlib
 
 import setuptools
 
+
+def read(HERE: pathlib.Path, filename, variable):
+    namespace = {}
+
+    exec(open(HERE / "torchlambda" / filename).read(), namespace)  # get version
+    return namespace[variable]
+
+
 HERE = pathlib.Path(__file__).resolve().parent
 
 
 setuptools.setup(
-    name="torchlambda",
-    version="0.1.0",
+    name=read(HERE, pathlib.Path("_name.py"), "_name"),
+    version=read(HERE, pathlib.Path("_version.py"), "__version__"),
     license="MIT",
     author="Szymon Maszke",
     author_email="szymon.maszke@protonmail.com",
@@ -17,13 +25,12 @@ setuptools.setup(
     url="https://github.com/pypa/torchlambda",
     packages=setuptools.find_packages(),
     package_data={"": ["*.sh", "*.txt", "Dockerfile", ".dockerignore", "templates"]},
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     entry_points={"console_scripts": ["torchlambda=src.main:main"],},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
