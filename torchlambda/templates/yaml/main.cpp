@@ -16,9 +16,7 @@
 
 {RESULT_OPERATION_DIM}
 
-#ifndef STATIC
 #include <string> /* To use for InvalidJson return if any of shape fields not provided */
-#endif
 
 #include <algorithm>
 #include <iterator>
@@ -39,10 +37,10 @@
  *
  */
 
-#define CREATE_JSON_ARRAY(json_array, data, type, func)                        \
-  auto* PTR = data.data_ptr<type>();                                           \
+#define CREATE_JSON_ARRAY(json_array, data, type, func, ptr_name)              \
+  auto* ptr_name = data.data_ptr<type>();                                      \
   for (int64_t i=0; i < data.numel(); ++i)                                     \
-    json_array[i] = JsonValue{{}}.func(*PTR++);
+    json_array[i] = Aws::Utils::Json::JsonValue{{}}.func(std::to_string(i), *ptr_name++);
 
 #define ADD_ITEM(value, func, name, type)                                      \
   func(name, value.flatten().item<type>())
@@ -137,9 +135,9 @@ handler(torch::jit::script::Module &module,
 
   /* Perform operation to create result */
 #if defined(RETURN_RESULT) || defined(RETURN_RESULT_ITEM)
-  const int result = output.{RESULT_OPERATION}(
+  auto result = output.{RESULT_OPERATION}(
 #ifdef RESULT_OPERATION_DIM
-      , RESULT_OPERATION_DIM
+      RESULT_OPERATION_DIM
 #endif
   );
 #endif
@@ -147,31 +145,31 @@ handler(torch::jit::script::Module &module,
   /* If array of outputs to be returned gather values as JSON */
 #ifdef RETURN_OUTPUT
   Aws::Utils::Array<Aws::Utils::Json::JsonValue> output_array{{}};
-  CREATE_JSON_ARRAY(output_array, output, {OUTPUT_TYPE}, {AWS_OUTPUT_FUNCTION})
+  CREATE_JSON_ARRAY(output_array, output, {OUTPUT_TYPE}, {AWS_OUTPUT_FUNCTION}, output_ptr)
 #endif
 
   /* If array of results to be returned gather values as JSON */
 #ifdef RETURN_RESULT
   Aws::Utils::Array<Aws::Utils::Json::JsonValue> result_array{{}};
-  CREATE_JSON_ARRAY(result_array, result, {RESULT_TYPE}, {AWS_RESULT_FUNCTION})
+  CREATE_JSON_ARRAY(result_array, result, {RESULT_TYPE}, {AWS_RESULT_FUNCTION}, result_ptr)
 #endif
 
   /* Return JSON with response */
   return aws::lambda_runtime::invocation_response::success(
       Aws::Utils::Json::JsonValue{{}}
-          .View()
 #ifdef RETURN_RESULT
-          .WithArray({RESULT_NAME}, result_array)
+          .WithArray("{RESULT_NAME}", result_array)
 #endif
 #ifdef RETURN_RESULT_ITEM
           .ADD_ITEM(result, {AWS_RESULT_FUNCTION}, {RESULT_NAME}, {RESULT_TYPE})
 #endif
 #ifdef RETURN_OUTPUT
-          .WithArray({OUTPUT_NAME}, output_array)
+          .WithArray("{OUTPUT_NAME}", output_array)
 #endif
 #ifdef RETURN_OUTPUT_ITEM
           .ADD_ITEM(output, {AWS_OUTPUT_FUNCTION}, {OUTPUT_NAME}, {OUTPUT_TYPE})
 #endif
+          .View()
           .WriteCompact(),
       "application/json");
 }}
