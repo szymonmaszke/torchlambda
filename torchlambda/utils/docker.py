@@ -63,29 +63,23 @@ def build(args) -> str:
     """
 
     def _add_build_arg(name: str, values: typing.List[str]) -> str:
-        if values is not None:
+        if values:
             return '--build-arg {}="{}" '.format(
-                name,
-                " ".join(
-                    ["-D{}".format(value) for value in values if value is not None]
-                ),
+                name, " ".join(["-D{}".format(value) for value in values]),
             )
         return " "
 
     def _add_components_to_build(components):
         if components is not None:
-            return "BUILD_ONLY='{}'".format(";".join(components))
-        return None
+            return ["BUILD_ONLY='{}'".format(";".join(components))]
+        return []
 
     command = "docker {} build {} -t {} ".format(
         *general.parse_none(args.docker, args.build, args.image)
     )
     command += _add_build_arg("PYTORCH", args.pytorch)
     command += _add_build_arg(
-        "AWS",
-        [_add_components_to_build(args.components)] + args.aws
-        if args.aws is not None
-        else [],
+        "AWS", _add_components_to_build(args.components) + args.aws
     )
     command += "."
     general.run(command, operation="custom PyTorch build.", silent=args.silent)
@@ -110,15 +104,11 @@ def run(args, image: str) -> str:
         Name of created container. Consist of torchlambda prefix and random string
     """
 
-    def _add_components(components):
-        return (
-            '"' + ";".join(args.components) + '"'
-            if components is not None
-            else '"core"'
-        )
+    def _add_components(args):
+        return '"' + ";".join(args.components) + '"' if args.components else '"core"'
 
     def _compilation(args):
-        return "" if args.compilation is None else '"' + args.compilation + '"'
+        return '"' + args.compilation + '"' if args.compilation else ""
 
     container_name = "torchlambda-" + str(uuid.uuid4())
     source_directory = pathlib.Path(args.source).absolute()
@@ -130,7 +120,7 @@ def run(args, image: str) -> str:
                 source_directory,
                 container_name,
                 image,
-                _add_components(args.components),
+                _add_components(args),
             )
         )
 
@@ -148,6 +138,28 @@ def run(args, image: str) -> str:
 
 
 def cp(args, name: str, source: str, destination: str) -> None:
+    """
+    Copy source to destination from named container.
+
+    Will verbosely copy file from container, yet no output of `docker` command
+    will be displayed.
+
+    Will crash the program if anything goes wrong.
+
+    Parameters
+    ----------
+    args : dict-like
+        User provided arguments parsed by argparse.ArgumentParser instance.
+    args : dict-like
+        User provided arguments
+    name : str
+        Name of container
+    source : str
+        Path to source to be copied
+    destination : str
+        Destination where source will be copied
+
+    """
     general.run(
         "docker container cp {}:{} {}".format(
             name, source, pathlib.Path(destination).absolute()
@@ -160,7 +172,18 @@ def cp(args, name: str, source: str, destination: str) -> None:
 
 
 @contextlib.contextmanager
-def rm(args, name: str) -> None:
+def rm(name: str) -> None:
+    """
+    Remove container specified by name
+
+    Container to be removed after deployment was copied from it to localhost.
+
+    Parameters
+    ----------
+    name : str
+        Name of the container to be removed
+
+    """
     try:
         yield
     finally:
