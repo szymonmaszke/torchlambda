@@ -1,6 +1,49 @@
 import argparse
 
 
+def settings(subparsers) -> None:
+    """Create YAML settings to use with `torchlambda scheme --yaml`."""
+    parser = subparsers.add_parser(
+        "settings",
+        help="Create YAML settings to use with `torchlambda scheme --yaml`.\n"
+        "This is the easiest way to deploy model, just modify default settings provided by this comand.\n"
+        "All unspecified fields will have default values just like those settings.\n",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--destination",
+        required=False,
+        default="./torchlambda.yaml",
+        help="""Path to file where YAML settings will be stored. Default: "./torchlambda.yaml" """,
+    )
+
+
+def scheme(subparsers) -> None:
+    """Create scheme C++ source for model inference."""
+    parser = subparsers.add_parser(
+        "scheme",
+        help="Create C++ deployment code scheme with AWS Lambda C++ SDK and PyTorch.\n"
+        "See generated code comments and change a few lines to fit your use case.",
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
+    parser.add_argument(
+        "--yaml",
+        required=False,
+        default=None,
+        help="Path to YAML containing settings to generate code scheme.\n"
+        "See torchlambda settings and comments in generated YAML for more info.",
+    )
+
+    parser.add_argument(
+        "--destination",
+        required=False,
+        default="./torchlambda",
+        help="""Path to folder where C++ deployment files will be located. Default: "./torchlambda" """,
+    )
+
+
 def deploy(subparsers) -> None:
     """Perform deployment of PyTorch C++ code to AWS Lambda."""
     parser = subparsers.add_parser(
@@ -51,7 +94,7 @@ def deploy(subparsers) -> None:
         "--pytorch",
         nargs="+",
         required=False,
-        default=None,
+        default=[],
         help="PyTorch's libtorch build flags.\n"
         "See PyTorch's CMakeLists.txt for all available flags: https://github.com/pytorch/pytorch/blob/master/CMakeLists.txt\n"
         "If specified, custom image will be build from scratch.\n"
@@ -74,7 +117,7 @@ def deploy(subparsers) -> None:
         "--aws",
         nargs="+",
         required=False,
-        default=None,
+        default=[],
         help="AWS C++ SDK build flags customizing dependency build.\n"
         "See: https://docs.aws.amazon.com/sdk-for-cpp/v1/developer-guide/cmake-params.html#cmake-build-only for more information.\n"
         "If specified, custom image will be built from scratch.\n"
@@ -92,7 +135,7 @@ def deploy(subparsers) -> None:
     parser.add_argument(
         "--components",
         nargs="+",
-        default=None,
+        default=[],
         required=False,
         help="Components of AWS C++ SDK to build.\n"
         "If specified, custom image will be built from scratch.\n"
@@ -140,23 +183,6 @@ def deploy(subparsers) -> None:
     )
 
 
-def scheme(subparsers) -> None:
-    """Create scheme C++ source for model inference."""
-    parser = subparsers.add_parser(
-        "scheme",
-        help="Create C++ deployment code scheme with AWS Lambda C++ SDK and PyTorch.\n"
-        "See generated code comments and change a few lines to fit your use case.",
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
-
-    parser.add_argument(
-        "--destination",
-        required=False,
-        default="./torchlambda",
-        help="""Path to folder where C++ deployment files will be located. Default: "./torchlambda" """,
-    )
-
-
 def model(subparsers) -> None:
     """Pack model as AWS Lambda ready .zip file."""
     parser = subparsers.add_parser(
@@ -185,8 +211,8 @@ def model(subparsers) -> None:
         required=False,
         default=None,
         help="Directory where model will be stored. Usually you don't want to change that.\n"
-        "Model will be unpacked to /opt + your specified directory\n"
-        "Default: None (model will be placed /opt)",
+        "Model will be unpacked to /opt/your/specified/directory and needs to be set analogously in C++/YAML settings.\n"
+        "Default: None (model will be placed in /opt)",
     )
 
     parser.add_argument(
