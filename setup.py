@@ -3,10 +3,10 @@ import pathlib
 import setuptools
 
 
-def read(HERE: pathlib.Path, filename, variable):
+def read(here: pathlib.Path, filename, variable):
     namespace = {}
 
-    exec(open(HERE / "torchlambda" / filename).read(), namespace)  # get version
+    exec(open(here / "torchlambda" / filename).read(), namespace)  # get version
     return namespace[variable]
 
 
@@ -26,7 +26,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     package_data={"": ["*.sh", "*.txt", "Dockerfile", ".dockerignore", "templates"]},
     python_requires=">=3.6",
-    entry_points={"console_scripts": ["torchlambda=src.main:main"],},
+    install_requires=["PyYAML>=5.3", "Cerberus>=1.3.2"],
+    entry_points={"console_scripts": ["torchlambda=torchlambda.main:main"],},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Programming Language :: Python",
