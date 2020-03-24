@@ -8,7 +8,7 @@ def run(args):
     destination = pathlib.Path(args.destination).absolute()
     with utils.general.message("packing Torchscript model to {}.".format(destination)):
         with zipfile.ZipFile(
-            args.destination,
+            destination,
             "w",
             compression=getattr(zipfile, "ZIP_{}".format(args.compression)),
             compresslevel=utils.model.compression_level(args.compression, args.level),
