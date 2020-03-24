@@ -28,7 +28,8 @@ def get_image(args) -> str:
 
     def _custom_build(args):
         flags = ("pytorch", "aws", "operations", "components", "build")
-        return any(getattr(args, flag) is not None for flag in flags)
+        # If any is not None or empty list
+        return any(map(lambda flag: getattr(args, flag), flags))
 
     image_exists: bool = docker.image_exists(args.image)
     if image_exists:
