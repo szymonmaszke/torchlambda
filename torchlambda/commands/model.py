@@ -13,18 +13,8 @@ def run(args):
             compression=getattr(zipfile, "ZIP_{}".format(args.compression)),
             compresslevel=utils.model.compression_level(args.compression, args.level),
         ) as file:
-            source = pathlib.Path(args.source)
-            if not source.is_file:
-                print(
-                    "torchlambda:: Error: provided path to torchscript model is not a file!"
-                )
-                exit(1)
-
-            if args.directory is not None:
-                pathlib.Path(args.directory)
+            utils.model.validate(args)
             file.write(
-                source,
-                pathlib.Path(args.directory) / args.source
-                if args.directory is not None
-                else args.source,
+                pathlib.Path(args.source),
+                utils.model.path(args) if args.directory is not None else args.source,
             )
