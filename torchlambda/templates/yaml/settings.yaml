@@ -1,0 +1,77 @@
+---
+# DEFAULT: Name of request field containing encoded data
+data_field: data
+# DEFAULT: Path to model.
+# /opt has to be always specified if model is put up as AWS Lambda Layer
+model_path: /opt/model.ptc
+# REQUIRED: Shape of input (either int or name of request field)
+# Field has to be of integer-like type during request
+input_shape: [batch, 3, width, height]
+# DEFAULT: If any field name provided as input shape check their
+# presence and being of integer-like type, otherwise return InvalidJSON
+check_fields: true
+# DEFAULT: Type to which byte tensor will be casted after data encoding
+# Possible values:
+# [
+#     "byte",           (unsigned int8)
+#     "char",           (int8)
+#     "short",          (int16)
+#     "int",            (int32)
+#     "long",           (int64)
+#     "half",           (float16)
+#     "float",          (float32)
+#     "double",         (float64)
+# ],
+cast: float
+# REQUIRED: Specify values to return as response
+# One of output or result HAS TO BE SPECIFIED
+return:
+  # Unmodified output from model
+  output:
+    # DEFAULT: Name of field
+    name: output
+    # REQUIRED: Type of field to be returned
+    # Possible values:
+    # [
+    #     "bool",           (unsigned int8)
+    #     "int",            (int32)
+    #     "long",           (int64)
+    #     "double",         (float64)
+    # ],
+    type: double
+    # NOT REQUIRED, DEFAULT: Whether output is a single itemo.
+    # By default Array of `type` will be returned
+    item: false
+  result:
+    operation: argmax
+    # DEFAULT: Dimension over which operation is applied.
+    # By default None (operation applied across all dimensions)
+    dim: 1
+    # DEFAULT: Name of field
+    name: labels
+    # REQUIRED: Type of field to be returned
+    # Possible values:
+    # [
+    #     "bool",           (unsigned int8)
+    #     "int",            (int32)
+    #     "long",           (int64)
+    #     "double",         (float64)
+    # ],
+    type: long
+    # NOT REQUIRED, DEFAULT: Whether output is a single itemo.
+    # By default Array of `type` will be returned
+    item: false
+
+# DEFAULT: Whether PyTorch gradients should be turned off
+no_grad: true
+# DEFAULT: Whether tensor should be normalized across channels
+# Used mainly in image recognition
+normalize:
+  # DEFAULT: Mean channel values to use for normalization
+  # Defaults of ImageNet values
+  means: [0.485, 0.456, 0.406]
+  # DEFAULT: Standard deviations values to use for normalization
+  # Defaults of ImageNet values
+  stddevs: [0.229, 0.224, 0.225]
+# DEFAULT: Standard deviations values to use for normalization
+divide: 255

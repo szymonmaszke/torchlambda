@@ -4,10 +4,14 @@ from .. import utils
 
 
 def run(args):
-    destination = pathlib.Path(args.destination).absolute()
-    with utils.general.message("creating C++ scheme at {}.".format(destination)):
-        utils.general.run(
-            "cp -r ./templates {}".format(destination),
-            operation="copying CPP sources",
-            silent=args.silent,
-        )
+    with utils.general.message("creating C++ scheme at {}.".format(args.destination)):
+        if args.yaml is None:
+            utils.general.run(
+                "cp -r ./templates/cpp {}".format(
+                    pathlib.Path(args.destination).absolute()
+                ),
+                operation="copying CPP sources",
+                silent=args.silent,
+            )
+        else:
+            utils.scheme.create_template(args)

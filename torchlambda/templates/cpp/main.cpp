@@ -46,15 +46,13 @@ handler(torch::jit::script::Module &module,
 
   /* Copy data and move it to tensor (is there an easier way?) */
   /* Array holds channels * width * height, input your values below */
-  float data[3 * 64 * 64];
-  std::copy(decoded.GetUnderlyingData(),
-            decoded.GetUnderlyingData() + decoded.GetLength() - 1, data);
 
   torch::Tensor tensor =
-      torch::from_blob(data,
+      torch::from_blob(data.GetUnderlyingData(),
                        {
-                           static_cast<long int>(decoded.GetLength()),
-                       })
+                           static_cast<long>(decoded.GetLength()),
+                       },
+                       torch::TensorOptions{}.dtype(torch::kUInt8), )
           /* Input your data shape for reshape including batch */
           .reshape({1, 3, 64, 64})
           .toType(torch::kFloat32) /
