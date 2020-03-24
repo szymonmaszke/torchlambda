@@ -82,7 +82,9 @@ def input_shape(settings) -> str:
         String like "1, 3, json_view.GetInteger("width"), json_view.GetInteger("height")"
     """
     return ", ".join(
-        str(elem) if isinstance(elem, int) else "json_view.GetInteger({})".format(elem)
+        str(elem)
+        if isinstance(elem, int)
+        else 'json_view.GetInteger("{}")'.format(elem)
         for elem in settings["input_shape"]
     )
 
