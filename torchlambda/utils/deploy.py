@@ -62,7 +62,7 @@ def get_package(args, image):
         Name of image used to create container.
     """
     container: str = docker.run(args, image)
-    with docker.rm(args, container):
+    with docker.rm(container):
         destination = pathlib.Path(args.destination).absolute()
         if not destination.is_file():
             docker.cp(
