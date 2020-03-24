@@ -81,6 +81,7 @@ def run(
         return return_value
 
 
+@message("copying provided model operations.")
 def copy_operations(args) -> None:
     """
     Copy custom operations.yaml of PyTorch model if provided by user.
