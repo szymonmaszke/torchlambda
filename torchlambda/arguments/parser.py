@@ -1,6 +1,6 @@
 import argparse
 
-from .subparsers import deploy, model, scheme, settings
+from .subparsers import build, layer, settings, template
 
 
 def get():
@@ -17,8 +17,8 @@ def get():
 
     subparsers = parser.add_subparsers(help="Available options:", dest="command")
     settings(subparsers)
-    scheme(subparsers)
-    deploy(subparsers)
-    model(subparsers)
+    template(subparsers)
+    build(subparsers)
+    layer(subparsers)
 
     return parser.parse_args()

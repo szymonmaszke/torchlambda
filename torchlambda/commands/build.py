@@ -5,5 +5,5 @@ def run(args):
     utils.docker.check()
 
     with utils.general.message("deployment."):
-        image = utils.deploy.get_image(args)
-        utils.deploy.get_package(args, image)
+        image = utils.build.get_image(args)
+        utils.build.get_package(args, image)

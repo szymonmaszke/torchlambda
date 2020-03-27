@@ -19,10 +19,10 @@ def settings(subparsers) -> None:
     )
 
 
-def scheme(subparsers) -> None:
-    """Create scheme C++ source for model inference."""
+def template(subparsers) -> None:
+    """Create C++ source code template used for model inference."""
     parser = subparsers.add_parser(
-        "scheme",
+        "template",
         help="Create C++ deployment code scheme with AWS Lambda C++ SDK and PyTorch.\n"
         "See generated code comments and change a few lines to fit your use case.",
         formatter_class=argparse.RawTextHelpFormatter,
@@ -44,10 +44,10 @@ def scheme(subparsers) -> None:
     )
 
 
-def deploy(subparsers) -> None:
+def build(subparsers) -> None:
     """Perform deployment of PyTorch C++ code to AWS Lambda."""
     parser = subparsers.add_parser(
-        "deploy",
+        "build",
         help="Obtain AWS Lambda ready .zip package from C++ deployment source code and Torchscript compiled model.\n"
         "See following resources for more information:\n"
         "- Torchscript documentation: https://pytorch.org/docs/stable/jit.html\n"
@@ -77,8 +77,10 @@ def deploy(subparsers) -> None:
         help="""Compilation flags used for inference source code.\n"""
         """Should be provided as string, e.g. "-Wall -Werror -O3".\n"""
         "By default no flags are passed to CMake targets.\n"
+        'If you want to pass a single flag you should add space after string, e.g. "-Wall "\n'
         "Command line defaults pass none additional flags as well.\n"
-        "User might want to specify -Os for smaller size or -O2 for possibly increased performance.",
+        "User might want to specify -Os for smaller size or -O2 for possibly increased performance.\n"
+        "IMPORTANT: Due to linker flags smaller binary size may not be possible at the moment.",
     )
 
     parser.add_argument(
@@ -114,6 +116,17 @@ def deploy(subparsers) -> None:
     )
 
     parser.add_argument(
+        "--pytorch-version",
+        required=False,
+        default=None,
+        help="Commit or tag to which PyTorch will be set during build.\n"
+        "See available releases at: https://github.com/pytorch/pytorch/releases (but any commit can be used)\n"
+        'Special value "None" allowed which leaves PyTorch at current head on master.\n'
+        "If specified, custom image will be build from scratch.\n"
+        "Default: latest ",
+    )
+
+    parser.add_argument(
         "--aws",
         nargs="+",
         required=False,
@@ -128,12 +141,12 @@ def deploy(subparsers) -> None:
         "-DCPP_STANDARD=17\n"
         "User can override defaults by providing multiple arguments WITHOUT -D, e.g. \n"
         "--aws CPP_STANDARD=11 CUSTOM_MEMORY_MANAGEMENT=ON\n"
-        "`-DBUILD_ONLY` flag SHOULD NOT BE USED HERE, specify --components instead\n"
+        "`-DBUILD_ONLY` flag SHOULD NOT BE USED HERE, specify --aws-components instead\n"
         "Default additional command line options: None",
     )
 
     parser.add_argument(
-        "--components",
+        "--aws-components",
         nargs="+",
         default=[],
         required=False,
@@ -141,7 +154,7 @@ def deploy(subparsers) -> None:
         "If specified, custom image will be built from scratch.\n"
         "Acts as `-DBUILD_ONLY` during build, please see https://docs.aws.amazon.com/sdk-for-cpp/v1/developer-guide/cmake-params.html#cmake-build-only.\n"
         "Pass components as space separated arguments, e.g.\n"
-        "--components s3 dynamodb\n"
+        "--aws-components s3 dynamodb\n"
         "By default only core will be build."
         "Default additional command line options: None",
     )
@@ -152,7 +165,7 @@ def deploy(subparsers) -> None:
         default="torchlambda:custom",
         help="Name of Docker image to use for code building.\n"
         "If provided name image exists on localhost it will be used for `docker run` command.\n"
-        "Otherwise and if custom build specified (either of --operations, --pytorch, --aws, --components or --build) image will be build from scratch.\n"
+        "Otherwise AND IF custom build specified (either of --operations, --pytorch, --aws, --components or --build) image will be build from scratch.\n"
         "Otherwise prebuilt image szymonmaszke/torchlambda:latest will be downloaded and used.\n"
         "Default: torchlambda:custom",
     )
@@ -160,40 +173,43 @@ def deploy(subparsers) -> None:
     parser.add_argument(
         "--docker",
         required=False,
-        help="Flags passed to docker command during build and run.\n"
+        help='Flags passed to "docker" command during build and run.\n'
+        'If you want to pass a single flag you should add space after string, e.g. "--debug "\n'
         """Flags should be passed as space separated string, e.g. "--debug --log-level debug".\nDefault: None""",
     )
 
     parser.add_argument(
-        "--build",
+        "--docker-build",
         required=False,
         help="Flags passed to docker build command (custom image building).\n"
         """Flags should be passed as space separated string, e.g. "--compress --no-cache".\n"""
+        'If you want to pass a single flag you should add space after string, e.g. "--compress "\n'
         "`-t` flag SHOULD NOT BE USED, specify --image instead.\n"
         "Default: None",
     )
 
     parser.add_argument(
-        "--run",
+        "--docker-run",
         required=False,
         help="Flags passed to docker run command (code deployment building).\n"
         "Flags should be passed as space separated string, e.g.\n"
         """--name deployment --mount source=myvol2,target=/home/app".\n"""
+        'If you want to pass a single flag you should add space after string, e.g. "--name my_name"\n'
         "Default: None",
     )
 
 
-def model(subparsers) -> None:
-    """Pack model as AWS Lambda ready .zip file."""
+def layer(subparsers) -> None:
+    """Pack model as .zip file ready to deploy on AWS Lambda as layer."""
     parser = subparsers.add_parser(
-        "model",
-        help="Pack model as AWS Lambda ready .zip file.",
+        "layer",
+        help="Pack model as .zip file ready to deploy on AWS Lambda as layer.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
     parser.add_argument(
         "source",
-        help="Path pointing at TorchScript compiled model.\n"
+        help="Path pointing to TorchScript compiled model.\n"
         "For more information check introduction to TorchScript:\n"
         "https://pytorch.org/tutorials/beginner/Intro_to_TorchScript_tutorial.html.",
     )
@@ -202,8 +218,8 @@ def model(subparsers) -> None:
         "--destination",
         required=False,
         default="./model.zip",
-        help="""Path where AWS Lambda layer containing model will be stored."""
-        """\nDefault: "./model.zip" """,
+        help="Path where AWS Lambda layer containing model will be stored.\n"
+        """Default: "./model.zip" """,
     )
 
     parser.add_argument(
@@ -223,16 +239,19 @@ def model(subparsers) -> None:
         type=str.upper,
         help="""Compression method used for model compression.\n"""
         "See: https://docs.python.org/3/library/zipfile.html#zipfile.ZIP_STORED for more information.\n"
+        "IMPORTANT: It's best to use default (uncompressed archive stored in.zip).\n"
+        "Model .ptc file will barely be compressed by any algorithm, while it may increase decompression speed on AWS Lambda.\n"
+        "If you wish to compress your model please use quantization (https://pytorch.org/docs/stable/quantization.html) or related techniques instead.\n"
         """Default: "STORED" """,
     )
 
     parser.add_argument(
-        "--level",
+        "--compression-level",
         required=False,
         default=None,
         choices=list(range(10)),
         type=int,
         help="""Level of compression used.\n"""
         "See: https://docs.python.org/3/library/zipfile.html#zipfile-objects for more information.\n"
-        """Default: None (default for method) """,
+        """Default: None (default for specified --compression) """,
     )

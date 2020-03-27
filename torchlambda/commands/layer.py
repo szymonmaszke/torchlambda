@@ -11,10 +11,12 @@ def run(args):
             destination,
             "w",
             compression=getattr(zipfile, "ZIP_{}".format(args.compression)),
-            compresslevel=utils.model.compression_level(args.compression, args.level),
+            compresslevel=utils.layer.compression_level(
+                args.compression, args.compression_level
+            ),
         ) as file:
-            utils.model.validate(args)
+            utils.layer.validate(args)
             file.write(
                 pathlib.Path(args.source),
-                utils.model.path(args) if args.directory is not None else args.source,
+                utils.layer.path(args) if args.directory is not None else args.source,
             )

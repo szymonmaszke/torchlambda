@@ -14,4 +14,4 @@ def run(args):
                 silent=args.silent,
             )
         else:
-            utils.scheme.create_template(args)
+            utils.template.create_template(args)
