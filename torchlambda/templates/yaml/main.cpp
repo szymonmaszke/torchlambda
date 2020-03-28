@@ -1,8 +1,12 @@
 {STATIC}
 
-{CHECK_FIELDS}
+{VALIDATE_JSON}
 
-{NO_GRAD}
+{VALIDATE_DATA}
+
+{VALIDATE_INPUTS}
+
+{GRAD}
 
 {NORMALIZE}
 
@@ -13,8 +17,6 @@
 {RETURN_RESULT}
 
 {RETURN_RESULT_ITEM}
-
-{RESULT_OPERATION_DIM}
 
 #include <string> /* To use for InvalidJson return if any of shape fields not provided */
 
@@ -57,7 +59,7 @@ handler(torch::jit::script::Module &module,
         const Aws::Utils::Base64::Base64 &transformer,
         const aws::lambda_runtime::invocation_request &request) {{
 
-  const Aws::String data_field{{ {DATA_FIELD} }};
+  const Aws::String data_field{{ {DATA} }};
 
   /*!
    *
@@ -66,30 +68,35 @@ handler(torch::jit::script::Module &module,
    */
 
   const auto json = Aws::Utils::Json::JsonValue{{request.payload}};
+
+#ifdef VALIDATE_JSON
   if (!json.WasParseSuccessful())
     return aws::lambda_runtime::invocation_response::failure(
         "Failed to parse request JSON file.", "InvalidJSON");
+#endif
 
+#ifdef VALIDATE_DATA
   const auto json_view = json.View();
   if (!json_view.KeyExists(data_field))
     return aws::lambda_runtime::invocation_response::failure(
-        "Required field: " {DATA_FIELD} " was not provided.", "InvalidJSON");
+        "Required field: \"" {DATA} "\" was not provided.", "InvalidJSON");
+#endif
 
-#if not defined(STATIC) && defined(CHECK_FIELDS)
+#if not defined(STATIC) && defined(VALIDATE_INPUTS)
   /* Check whether all necessary fields are passed */
 
   Aws::String fields[]{{ {FIELDS} }};
   for (const auto &field : fields) {{
     if (!json_view.KeyExists(field))
       return aws::lambda_runtime::invocation_response::failure(
-          "Required field: " + std::string{{field.c_str(), field.size()}} +
-              " was not provided.",
+          "Required input shape field: '" + std::string{{field.c_str(), field.size()}} +
+              "' was not provided.",
           "InvalidJSON");
 
     if (!json_view.GetObject(field).IsIntegerType())
       return aws::lambda_runtime::invocation_response::failure(
-          "Required field: " + std::string{{field.c_str(), field.size()}} +
-              " is not of integer type and cannot act as part of target tensor shape.",
+          "Required shape field: '" + std::string{{field.c_str(), field.size()}} +
+              "' is not of integer type.",
           "InvalidJSON");
   }}
 
@@ -104,6 +111,8 @@ handler(torch::jit::script::Module &module,
   const auto base64_data = json_view.GetString(data_field);
   Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
 
+
+
   /* Const tensor? */
   torch::Tensor tensor =
 #ifdef NORMALIZE
@@ -116,14 +125,16 @@ handler(torch::jit::script::Module &module,
                   /* Explicit cast as PyTorch has long int for some reason */
                   static_cast<long>(decoded.GetLength()),
               }},
-              torch::TensorOptions().dtype(torch::kUInt8))
-              .reshape( {{{INPUT_SHAPE}}} )
+              torch::kUInt8)
+              .reshape( {{{INPUTS}}} )
               .toType( {CAST} ) /
           {DIVIDE}
 #ifdef NORMALIZE
       )
 #endif
       ;
+
+
 
   /*!
    *
@@ -135,11 +146,7 @@ handler(torch::jit::script::Module &module,
 
   /* Perform operation to create result */
 #if defined(RETURN_RESULT) || defined(RETURN_RESULT_ITEM)
-  auto result = output.{RESULT_OPERATION}(
-#ifdef RESULT_OPERATION_DIM
-      RESULT_OPERATION_DIM
-#endif
-  );
+  auto result = {OPERATIONS_AND_ARGUMENTS};
 #endif
 
   /* If array of outputs to be returned gather values as JSON */
@@ -176,7 +183,7 @@ handler(torch::jit::script::Module &module,
 
 int main() {{
 
-#ifdef NO_GRAD
+#ifndef GRAD
   torch::NoGradGuard no_grad_guard{{}};
 #endif
 
