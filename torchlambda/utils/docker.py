@@ -62,24 +62,32 @@ def build(args) -> str:
         Name of created image
     """
 
-    def _add_build_arg(name: str, values: typing.List[str]) -> str:
+    def _cmake_environment_variables(name: str, values: typing.List[str]) -> str:
         if values:
             return '--build-arg {}="{}" '.format(
                 name, " ".join(["-D{}".format(value) for value in values]),
             )
         return " "
 
-    def _add_components_to_build(components):
+    def _create_aws_components(components):
         if components is not None:
             return ["BUILD_ONLY='{}'".format(";".join(components))]
         return []
 
+    def _pytorch_version(version: str):
+        return (
+            "--build-arg PYTORCH_VERSION={}".format(version)
+            if version is not None
+            else ""
+        )
+
     command = "docker {} build {} -t {} ".format(
         *general.parse_none(args.docker, args.build, args.image)
     )
-    command += _add_build_arg("PYTORCH", args.pytorch)
-    command += _add_build_arg(
-        "AWS", _add_components_to_build(args.components) + args.aws
+    command += _cmake_environment_variables("PYTORCH", args.pytorch)
+    command += _pytorch_version(args.pytorch_version)
+    command += _cmake_environment_variables(
+        "AWS", _create_aws_components(args.aws_components) + args.aws
     )
     command += "."
     general.run(command, operation="custom PyTorch build.", silent=args.silent)
@@ -105,7 +113,11 @@ def run(args, image: str) -> str:
     """
 
     def _add_components(args):
-        return '"' + ";".join(args.components) + '"' if args.components else '"core"'
+        return (
+            '"' + ";".join(args.aws_components) + '"'
+            if args.aws_components
+            else '"core"'
+        )
 
     def _compilation(args):
         return '"' + args.compilation + '"' if args.compilation else ""
@@ -116,7 +128,7 @@ def run(args, image: str) -> str:
         command = "docker {} run {} -v {}:/usr/local/user_code --name {} {} {} ".format(
             *general.parse_none(
                 args.docker,
-                args.run,
+                args.docker_run,
                 source_directory,
                 container_name,
                 image,

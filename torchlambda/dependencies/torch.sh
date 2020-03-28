@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-TORCH_RELEASE=7f73f1d
+TORCH_VERSION=$1
+shift
+
 OP_LIST="/home/app/model.yaml"
 
 # Build args targeting AWS Lambda capabilities
@@ -32,7 +34,10 @@ fi
 echo "torchlambda:: Cloning and building Libtorch..."
 git clone --recursive https://github.com/pytorch/pytorch.git
 echo "- torchlambda:: Resetting PyTorch to official 1.4.0 release..."
-cd pytorch && git reset --hard "${TORCH_RELEASE}" && cd - || exit 1
+
+if [ "$TORCH_VERSION" != "latest" ]; then
+  cd pytorch && git reset --hard "${TORCH_VERSION}" && cd - || exit 1
+fi
 
 # We are using cmake3 and python3 so replace all occurrences of it in the script
 # Only python with space as it's used in two more places. No difference for cmake, consistency's sake

@@ -27,7 +27,15 @@ def get_image(args) -> str:
     """
 
     def _custom_build(args):
-        flags = ("pytorch", "aws", "operations", "components", "build")
+        """True if any of the flags specified as non-default."""
+        flags = (
+            "pytorch",
+            "aws",
+            "operations",
+            "aws_components",
+            "docker_build",
+            "pytorch_version",
+        )
         # If any is not None or empty list
         return any(map(lambda flag: getattr(args, flag), flags))
 

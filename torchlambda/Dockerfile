@@ -2,6 +2,7 @@ FROM amazonlinux:latest AS builder
 
 ARG AWS=" "
 ARG PYTORCH=" "
+ARG PYTORCH_VERSION="latest"
 
 RUN yum -y group install "Development Tools" && \
   yum -y install unzip git wget rh-python37 ninja-build cmake3 curl-devel \
@@ -15,7 +16,7 @@ COPY . /home/app
 RUN cd dependencies && \
   ./aws-lambda.sh && \
   ./aws-sdk.sh ${AWS} && \
-  ./torch.sh ${PYTORCH} && \
+  ./torch.sh ${PYTORCH_VERSION} ${PYTORCH} && \
   cp -r pytorch/build_mobile/install/* /usr/local/ && \
   cp ../CMakeLists.txt ../build.sh /usr/local/
 
