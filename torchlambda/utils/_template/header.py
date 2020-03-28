@@ -3,7 +3,7 @@ from . import macro
 
 def static(settings) -> str:
     """
-    Return #define STATIC if all input_shape fields are integer.
+    Return #define STATIC if all inputs fields are integer.
 
     If specified, no field checks will be performed during request to
     Lambda function.
@@ -19,13 +19,55 @@ def static(settings) -> str:
         Either "" or "#define STATIC"
     """
     return macro.conditional(
-        all(isinstance(x, int) for x in settings["input_shape"]), "STATIC"
+        all(isinstance(x, int) for x in settings["inputs"]), "STATIC"
     )
 
 
-def check_fields(settings) -> str:
+def validate_json(settings) -> str:
     """
-    Return #define CHECK_FIELDS if check_fields: True specified.
+    Return #define VALIDATE_JSON if validate_json: True specified.
+
+    If specified, it will be validated if JSON was parsed successfully.
+    If not, InvalidJson with appropriate text will be returned.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        Either "" or "#define VALIDATE_JSON"
+    """
+    return macro.conditional(settings["validate_json"], "VALIDATE_JSON")
+
+
+def validate_data(settings) -> str:
+    """
+    Return #define VALIDATE_DATA if validate_json: True specified.
+
+    If specified, data will be checked for correctness
+    (only whether `data` field exists).
+
+    If not, InvalidJson with appropriate text will be returned.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        Either "" or "#define VALIDATE_DATA"
+    """
+    return macro.conditional(settings["validate_data"], "VALIDATE_DATA")
+
+
+def validate_inputs(settings) -> str:
+    """
+    Return #define VALIDATE_INPUTS if validate_inputs: True specified.
 
     If specified, input fields will be checked (if any exist).
     All of them will be checked for existence and whether their type
@@ -41,16 +83,16 @@ def check_fields(settings) -> str:
     Returns
     -------
     str:
-        Either "" or "#define CHECK_FIELDS"
+        Either "" or "#define VALIDATE_INPUTS"
     """
-    return macro.conditional(settings["check_fields"], "CHECK_FIELDS")
+    return macro.conditional(settings["validate_inputs"], "VALIDATE_INPUTS")
 
 
-def no_grad(settings) -> str:
+def grad(settings) -> str:
     """
-    Return #define NO_GRAD if no_grad: True specified.
+    Return #define GRAD if grad: True specified.
 
-    If specified, libtorch's grad addition to ATen will be turned off.
+    If specified, libtorch's grad addition to ATen will be turned on.
 
     Parameters
     ----------
@@ -60,9 +102,9 @@ def no_grad(settings) -> str:
     Returns
     -------
     str:
-        Either "" or "#define NO_GRAD"
+        Either "" or "#define GRAD"
     """
-    return macro.conditional(settings["no_grad"], "NO_GRAD")
+    return macro.conditional(settings["grad"], "GRAD")
 
 
 def normalize(settings) -> str:
@@ -174,30 +216,4 @@ def return_result_item(settings):
     return macro.conditional(
         settings["return"]["result"] and settings["return"]["result"]["item"],
         "RETURN_RESULT_ITEM",
-    )
-
-
-def result_operation_dim(settings):
-    """
-    Return #define RESULT_OPERATION_DIM <value> if field return->result->dim is specified.
-
-    Will apply RESULT_OPERATION across RESULT_OPERATION_DIM <value>
-    (e.g. across first dimension) if RESULT_OPERATION_DIM <value< specified as
-    header.
-
-    Parameters
-    ----------
-    settings : typing.Dict
-        YAML parsed to dict
-
-    Returns
-    -------
-    str:
-        Either "" or "#define RESULT_OPERATION_DIM"
-    """
-    dim_exists = settings["return"]["result"] and settings["return"]["result"]["dim"]
-    return macro.conditional(
-        dim_exists,
-        "RESULT_OPERATION_DIM",
-        settings["return"]["result"]["dim"] if dim_exists else None,
     )

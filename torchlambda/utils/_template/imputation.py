@@ -1,4 +1,8 @@
-def data_field(settings) -> str:
+import collections
+import itertools
+
+
+def data(settings) -> str:
     """
     Impute name of field containing base64 encoded data.
 
@@ -12,7 +16,7 @@ def data_field(settings) -> str:
     str:
         "name_of_data_field"
     """
-    return '"' + settings["data_field"] + '"'
+    return '"' + settings["data"] + '"'
 
 
 def fields(settings) -> str:
@@ -33,11 +37,7 @@ def fields(settings) -> str:
         "field1", "field2", ..., "fieldN"
     """
     return ", ".join(
-        [
-            '"' + field + '"'
-            for field in settings["input_shape"]
-            if isinstance(field, str)
-        ]
+        ['"' + field + '"' for field in settings["inputs"] if isinstance(field, str)]
     )
 
 
@@ -62,7 +62,7 @@ def normalize(settings, key: str) -> str:
     return ", ".join(map(str, settings["normalize"][key]))
 
 
-def input_shape(settings) -> str:
+def inputs(settings) -> str:
     """
     Impute input shapes.
 
@@ -85,7 +85,7 @@ def input_shape(settings) -> str:
         str(elem)
         if isinstance(elem, int)
         else 'json_view.GetInteger("{}")'.format(elem)
-        for elem in settings["input_shape"]
+        for elem in settings["inputs"]
     )
 
 
@@ -140,14 +140,19 @@ def divide(settings) -> str:
     return str(settings["divide"])
 
 
-def result_operation(settings) -> str:
+def operations_and_arguments(settings):
     """
-    If return->result specified get name of operation to apply on output tensor.
+    If return->result specified get names of operations to apply on output tensor.
 
-    This operation is required as it creates "result" from operation.
+    Merges return->result->operations and return->result->arguments into
+    single string to input.
 
-    Name of the operation isn't verified and it may result in compilation error
-    if user specifies unavailable tensor function.
+    return ->result->operations is required.
+
+    Names of operations or arguments isn't verified and it may result in compilation
+    error if user specifies unavailable tensor function.
+
+    Current weak point in design, check if it can be improved and "safer".
 
     Parameters
     ----------
@@ -160,9 +165,43 @@ def result_operation(settings) -> str:
         string representation of number, e.g. "255.0"
 
     """
+
+    def _add_namespace(operation):
+        return "torch::{}".format(operation)
+
+    def _operation_with_arguments(operation, *values):
+        return "{}({})".format(
+            _add_namespace(operation),
+            ",".join(map(str, [value for value in values if value])),
+        )
+
+    def _no_arguments_multiple_operations(operations):
+        output = _operation_with_arguments(operations[0], "output")
+        for operation in operations[1:]:
+            output = _operation_with_arguments(operation, output)
+        return output
+
+    def _wrap_in_list(value):
+        if not isinstance(value, list):
+            return [value]
+        return value
+
     if settings["return"]["result"] is None:
         return ""
-    return settings["return"]["result"]["operation"]
+
+    operations = settings["return"]["result"]["operations"]
+    arguments = settings["return"]["result"]["arguments"]
+    if arguments is None:
+        if isinstance(operations, str):
+            return "{}(output)".format(_add_namespace(operations))
+        return _no_arguments_multiple_operations(operations)
+
+    operations, arguments = _wrap_in_list(operations), _wrap_in_list(arguments)
+    print(operations, arguments)
+    output = _operation_with_arguments(operations[0], "output", arguments[0])
+    for operation, argument in itertools.zip_longest(operations[1:], arguments[1:]):
+        output = _operation_with_arguments(operation, output, argument)
+    return output
 
 
 def aws_function(settings, key: str) -> str:
@@ -223,7 +262,7 @@ def field_if_exists(settings, key: str, name: str) -> str:
     return settings["return"][key][name]
 
 
-def model_path(settings) -> str:
+def model(settings) -> str:
     """
     Return path to model specified by settings.
 
@@ -238,4 +277,4 @@ def model_path(settings) -> str:
         "/path/to/model"
 
     """
-    return '"' + settings["model_path"] + '"'
+    return '"' + settings["model"] + '"'

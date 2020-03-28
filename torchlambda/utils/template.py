@@ -75,7 +75,7 @@ def create_source(settings: typing.Dict) -> str:
         input dimension is dependent on value passed in request as field).
         True if `input_shape` only has integers (fixed input shape).
 
-        - CHECK_FIELDS - whether fields provided in INPUT_SHAPE should be
+        - VALIDATE_INPUTS - whether fields provided in INPUT_SHAPE should be
         checked for correctness (they exist and are of integer type).
         Default: True
 
@@ -107,12 +107,9 @@ def create_source(settings: typing.Dict) -> str:
         - RETURN_RESULT_ITEM - whether to return output as single item.
         Exclusive with RETURN_RESULT
 
-        - RESULT_OPERATION_DIM - Dimension of operation to apply over outputted tensor,
-        if any (lower than input_shape length).
-
     **DESCRIPTION OF DIRECTLY IMPUTED FIELDS**:
 
-        - DATA_FIELD - Name of field providing data in request
+        - DATA - Name of field providing data in request
 
         - FIELDS - Names (if any) of provided non-static fields
 
@@ -120,11 +117,13 @@ def create_source(settings: typing.Dict) -> str:
 
         - NORMALIZE_STDDEVS - Standard deviations to use for normalization (if any)
 
-        - INPUT_SHAPE - Input shapes used for reshape of tensor (including batch dimension)
+        - INPUTS - Input shapes used for reshape of tensor (including batch dimension)
 
         - IF RETURN_RESULT OR RETURN_RESULT_ITEM DEFINED:
 
-            - RESULT_OPERATION - Operation to apply over outputted tensor, if any (one of predefined)
+            - OPERATIONS_AND_ARGUMENTS - Operations with arguments (if any) to apply over
+            outputted tensor to create result.
+            Mix of "operations" and "arguments" fields
 
         - IF RETURN_OUTPUT OR RETURN_OUTPUT_ITEM DEFINED:
 
@@ -161,24 +160,25 @@ def create_source(settings: typing.Dict) -> str:
         return file.read().format(
             # Top level defines
             STATIC=_template.header.static(settings),
-            CHECK_FIELDS=_template.header.check_fields(settings),
-            NO_GRAD=_template.header.no_grad(settings),
+            VALIDATE_JSON=_template.header.validate_json(settings),
+            VALIDATE_DATA=_template.header.validate_data(settings),
+            VALIDATE_INPUTS=_template.header.validate_inputs(settings),
+            GRAD=_template.header.grad(settings),
             NORMALIZE=_template.header.normalize(settings),
             RETURN_OUTPUT=_template.header.return_output(settings),
             RETURN_OUTPUT_ITEM=_template.header.return_output_item(settings),
             RETURN_RESULT=_template.header.return_result(settings),
             RETURN_RESULT_ITEM=_template.header.return_result_item(settings),
-            RESULT_OPERATION_DIM=_template.header.result_operation_dim(settings),
             # Direct insertions
-            DATA_FIELD=_template.imputation.data_field(settings),
+            DATA=_template.imputation.data(settings),
             FIELDS=_template.imputation.fields(settings),
             NORMALIZE_MEANS=_template.imputation.normalize(settings, key="means"),
             NORMALIZE_STDDEVS=_template.imputation.normalize(settings, key="stddevs"),
-            INPUT_SHAPE=_template.imputation.input_shape(settings),
+            INPUTS=_template.imputation.inputs(settings),
             CAST=_template.imputation.cast(settings),
             DIVIDE=_template.imputation.divide(settings),
-            RESULT_OPERATION=_template.imputation.field_if_exists(
-                settings, key="result", name="operation"
+            OPERATIONS_AND_ARGUMENTS=_template.imputation.operations_and_arguments(
+                settings
             ),
             AWS_OUTPUT_FUNCTION=_template.imputation.aws_function(
                 settings, key="output"
@@ -198,7 +198,7 @@ def create_source(settings: typing.Dict) -> str:
             RESULT_NAME=_template.imputation.field_if_exists(
                 settings, key="result", name="name"
             ),
-            MODEL_PATH=_template.imputation.model_path(settings),
+            MODEL_PATH=_template.imputation.model(settings),
         )
 
 
