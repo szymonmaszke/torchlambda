@@ -22,6 +22,7 @@ handler(torch::jit::script::Module &module,
   /*!
    *
    *               PARSE AND VALIDATE REQUEST
+   *        (you may want to add more validations)
    *
    */
 
@@ -37,28 +38,27 @@ handler(torch::jit::script::Module &module,
 
   /*!
    *
-   *            LOAD DATA, TRANSFORM TO TENSOR, NORMALIZE
+   *          LOAD DATA, TRANSFORM TO TENSOR, NORMALIZE
    *
    */
 
   const auto base64_data = json_view.GetString(data_field);
   Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
 
-  /* Copy data and move it to tensor (is there an easier way?) */
-  /* Array holds channels * width * height, input your values below */
-
+  /* Create tensor of type Byte from pointer and cast to float32 */
   torch::Tensor tensor =
-      torch::from_blob(data.GetUnderlyingData(),
+      torch::from_blob(decoded.GetUnderlyingData(),
                        {
                            static_cast<long>(decoded.GetLength()),
                        },
-                       torch::TensorOptions{}.dtype(torch::kUInt8), )
-          /* Input your data shape for reshape including batch */
+                       torch::kUInt8)
+          /* You may want to pass those values in your request*/
+          /* if tensors with dynamic shapes are provided */
           .reshape({1, 3, 64, 64})
           .toType(torch::kFloat32) /
       255.0;
 
-  /* Normalize tensor with ImageNet mean and stddev */
+  /* Normalize tensor with ImageNet means and standard deviations */
   torch::Tensor normalized_tensor = torch::data::transforms::Normalize<>{
       {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(tensor);
 
@@ -70,6 +70,7 @@ handler(torch::jit::script::Module &module,
 
   /* {} will be casted to std::vector<torch::jit::IValue> under the hood */
   auto output = module.forward({normalized_tensor}).toTensor();
+  /* As only single element will be outputted from argmax we can use item */
   const int label = torch::argmax(output).item<int>();
 
   /* Return JSON with field label containing predictions*/
@@ -82,14 +83,14 @@ handler(torch::jit::script::Module &module,
 }
 
 int main() {
-  /* Inference doesn't need gradient, let's turn it off */
+  /* Inference doesn't usually need gradient, let's turn it off */
   torch::NoGradGuard no_grad_guard{};
 
-  /* Change name/path to your model if you so desire */
-  /* Layers are unpacked to /opt, so you are better off keeping it */
+  /* Layers are unpacked to /opt if you are passing your model this way */
   constexpr auto model_path = "/opt/model.ptc";
 
   /* You could add some checks whether the module is loaded correctly */
+  /* Module should be loaded here for faster inference and shared via context */
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
 
   module.eval();
