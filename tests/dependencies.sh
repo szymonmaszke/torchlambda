@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-pip3 install numpy torch torchvision && pip3 install -e ./setup.py
+pip install numpy torch torchvision && pip install -e ./setup.py
