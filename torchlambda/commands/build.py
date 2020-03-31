@@ -6,4 +6,5 @@ def run(args):
 
     with utils.general.message("deployment."):
         image = utils.build.get_image(args)
-        utils.build.get_package(args, image)
+        if not args.no_run:
+            utils.build.get_package(args, image)

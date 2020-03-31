@@ -198,6 +198,15 @@ def build(subparsers) -> None:
         "Default: None",
     )
 
+    parser.add_argument(
+        "--no-run",
+        required=False,
+        action="store_true",
+        help="Do not run compilation of source code part.\n"
+        "Can be used to only create Docker building image to be run later."
+        "Default: False",
+    )
+
 
 def layer(subparsers) -> None:
     """Pack model as .zip file ready to deploy on AWS Lambda as layer."""
