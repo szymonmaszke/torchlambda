@@ -18,3 +18,9 @@ return:
     type: double
     name: output
     item: false
+  result:
+    type: int
+    name: result
+    operation: argmax
+    arguments: 1
+    item: true
