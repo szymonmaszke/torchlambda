@@ -63,26 +63,26 @@ def build(args) -> str:
     """
 
     def _cmake_environment_variables(name: str, values: typing.List[str]) -> str:
-        if values:
-            return '--build-arg {}="{}" '.format(
+        return (
+            '--build-arg {}="{}" '.format(
                 name, " ".join(["-D{}".format(value) for value in values]),
             )
-        return " "
+            if values
+            else " "
+        )
 
     def _create_aws_components(components):
-        if components is not None:
-            return ["BUILD_ONLY='{}'".format(";".join(components))]
-        return []
+        return ["BUILD_ONLY='{}'".format(";".join(components))] if components else []
 
     def _pytorch_version(version: str):
         return (
-            "--build-arg PYTORCH_VERSION={}".format(version)
+            '--build-arg PYTORCH_VERSION="{}" '.format(version)
             if version is not None
-            else ""
+            else " "
         )
 
     command = "docker {} build {} -t {} ".format(
-        *general.parse_none(args.docker, args.build, args.image)
+        *general.parse_none(args.docker, args.docker_build, args.image)
     )
     command += _cmake_environment_variables("PYTORCH", args.pytorch)
     command += _pytorch_version(args.pytorch_version)
