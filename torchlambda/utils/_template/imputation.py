@@ -256,14 +256,16 @@ def aws_function(settings, key: str, array: bool) -> str:
         "" or "As<type>" or "With<type>" AWS function name
 
     """
+
+    prefix = "As" if array else "With"
     type_mapping = {
         "int": "Integer",
         "long": "Int64",
         "double": "Double",
     }
+
     if settings["return"][key] is None:
         return ""
-    prefix = "As" if array else "With"
     return prefix + type_mapping[settings["return"][key]["type"].lower()]
 
 

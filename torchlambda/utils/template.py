@@ -191,7 +191,7 @@ def create_source(settings: typing.Dict) -> str:
                 settings, key="output", array=False
             ),
             AWS_RESULT_ITEM_FUNCTION=_template.imputation.aws_function(
-                settings, key="output", array=False
+                settings, key="result", array=False
             ),
             OUTPUT_TYPE=_template.imputation.field_if_exists(
                 settings, key="output", name="type"
