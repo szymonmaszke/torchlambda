@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 import typing
@@ -17,15 +18,5 @@ def load_test(args) -> typing.Dict:
             return json.load(file)
         except Exception as error:
             print("Test error:: JSON file loaded uncorrectly.")
-            print(error)
-            sys.exit(1)
-
-
-def load_settings(args) -> typing.Dict:
-    with open(args.file, "r") as file:
-        try:
-            return yaml.safe_load(file)
-        except yaml.YAMLError as error:
-            print("Test error:: Error during user settings loading.")
             print(error)
             sys.exit(1)
