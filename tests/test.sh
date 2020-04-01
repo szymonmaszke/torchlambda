@@ -1,32 +1,46 @@
 #!/usr/bin/env sh
 
+set -e
+
 IMAGE="torchlambda:custom"
 
 SETTINGS="./settings.yaml"
 TEST_SETTINGS="./test_settings.yaml"
+
 TEST_CPP_SOURCE_FOLDER="./test_cpp_source_folder"
 TEST_PACKAGE="./deployment.zip"
 TEST_CODE="./test_code"
+MODEL="./model.ptc"
 OUTPUT="./output.json"
 
-for test_filename in tests/cases/*.json; do
-  # Create test case
-  torchlambda settings --destination "$SETTINGS"
-  python3 tests/src/setup_test.py "$SETTINGS" "$test_filename" "$TEST_SETTINGS"
+for test_case in tests/cases/*.json; do
+  printf "\nTEST: %s\n\n" "$test_case"
 
-  # Create C++ source code
+  # Get default settings
+  echo "$test_case: Creating general settings"
+  torchlambda settings --destination "$SETTINGS"
+
+  # Insert test case specific values into settings
+  echo "$test_case: Setup test settings"
+  SETTINGS="$SETTINGS" OUTPUT="$TEST_SETTINGS" python tests/src/setup_test.py "$test_case"
+
+  # Use test settings to create C++ code template
+  echo "$test_case: Creating source code from settings"
   torchlambda template --yaml "$TEST_SETTINGS" --destination "$TEST_CPP_SOURCE_FOLDER"
 
-  # Setup
+  # Build code template into deployment package
+  echo "$test_case: Building source code"
   torchlambda build "$TEST_CPP_SOURCE_FOLDER" --destination "$TEST_PACKAGE" --image "$IMAGE"
-  unzip "$TEST_PACKAGE" -d "$TEST_CODE"
+  unzip -qq "$TEST_PACKAGE" -d "$TEST_CODE"
 
-  OUTPUT="$OUTPUT" TEST_CODE="$TEST_CODE" MODEL="$MODEL" python3 tests/src/request.py "$TEST_SETTINGS" | jq -r '.STATUS_CODE '
-  if [ $OUTPUT != 200 ]; then
-    echo "Test:: Wrong output code from AWS Lambda inference for: $test_filename"
-    exit 1
-  fi
+  # Create example model
+  echo "$test_case: Creating specified model"
+  MODEL="$MODEL" python tests/src/model.py "$test_case"
+
+  # Do not pack layer (lambci needs unpacked code and layers)
+  echo "$test_case: Request output from function"
+  OUTPUT="$OUTPUT" TEST_CODE="$TEST_CODE" MODEL="$MODEL" timeout 20 python tests/src/request.py "$test_case"
 
   # Clean up
-  rm -rf $SETTINGS $TEST_SETTINGS $TEST_CPP_SOURCE_FOLDER $TEST_PACKAGE $TEST_CODE $OUTPUT
+  rm -rf $SETTINGS $TEST_SETTINGS $TEST_CPP_SOURCE_FOLDER $TEST_PACKAGE $TEST_CODE $MODEL
 done
