@@ -39,7 +39,7 @@ jobs:
   deploy-docker:
     needs: tests
     if: github.event_name != 'pull_request'
-    name: Deployment image: szymonmaszke/torchlambda:${{ matrix.image}}
+    name: Deployment image szymonmaszke/torchlambda:${{ matrix.image}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
