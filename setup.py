@@ -14,7 +14,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 
 
 setuptools.setup(
-    name=read(HERE, pathlib.Path("_name.py"), "_name"),
+    name="torchlambda",
     version=read(HERE, pathlib.Path("_version.py"), "__version__"),
     license="MIT",
     author="Szymon Maszke",
