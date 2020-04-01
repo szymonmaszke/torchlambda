@@ -1,0 +1,89 @@
+---
+name: tests
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  tests:
+    name: Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}, PyTorch: ${{ matrix.pytorch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        pytorch:
+          - "v1.4.0"
+          - "latest"
+        python-version:
+          - 3.5
+          - 3.6
+          - 3.7
+          - 3.8
+        os:
+          - ubuntu-latest
+          - ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: ./scripts/ci/dependencies.sh
+      - name: Build docker image locally
+        run: ./scripts/ci/build.sh ${{ matrix.pytorch }}
+      - name: Perform tests
+        run: ./tests/run.sh
+
+  deploy-docker:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    name: Deployment image: szymonmaszke/torchlambda:${{ matrix.image}}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          - "v1.4.0"
+          - "latest"
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python version
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install dependencies
+        run: ./scripts/ci/dependencies.sh
+      - name: Build docker image locally
+        run: ./scripts/ci/build.sh ${{ matrix.pytorch }}
+      - name: Login to Docker
+        run: >
+          docker login
+          -u ${{ secrets.DOCKER_USERNAME }}
+          -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Deploy image szymonmaszke/torchlambda:${{ matrix.image }}
+        run: >
+          docker push szymonmaszke/torchlambda:${{ matrix.image }}
+
+  deploy-pip:
+    needs: tests
+    if: github.event_name == 'schedule'
+    name: Create and publish package to PyPI with current timestamp
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Update version to new release date
+        run: ./scripts/release/update_version.sh
+      - uses: actions/setup-python@v1
+        with:
+          python-version: "3.7"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+      - name: Build package
+        run: python setup.py sdist bdist_wheel
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_PASSWORD }}
