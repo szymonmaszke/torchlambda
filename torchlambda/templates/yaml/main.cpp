@@ -42,7 +42,7 @@
 #define CREATE_JSON_ARRAY(json_array, data, type, func, ptr_name)              \
   auto* ptr_name = data.data_ptr<type>();                                      \
   for (int64_t i=0; i < data.numel(); ++i)                                     \
-    json_array[i] = Aws::Utils::Json::JsonValue{{}}.func(std::to_string(i), *ptr_name++);
+    json_array[i] = Aws::Utils::Json::JsonValue{{}}.func(*ptr_name++);
 
 #define ADD_ITEM(value, func, name, type)                                      \
   func(name, value.flatten().item<type>())
@@ -134,15 +134,19 @@ handler(torch::jit::script::Module &module,
 #endif
       ;
 
-
-
   /*!
    *
    *              MAKE INFERENCE AND RETURN JSON RESPONSE
    *
    */
 
-  auto output = module.forward({{tensor}}).toTensor();
+  /* Support for multi-output/multi-input? */
+  auto output = module.forward({{tensor}}).toTensor()
+#ifdef RETURN_OUTPUT
+    .toType( {OUTPUT_CAST} )
+#endif
+  ;
+
 
   /* Perform operation to create result */
 #if defined(RETURN_RESULT) || defined(RETURN_RESULT_ITEM)
@@ -151,13 +155,13 @@ handler(torch::jit::script::Module &module,
 
   /* If array of outputs to be returned gather values as JSON */
 #ifdef RETURN_OUTPUT
-  Aws::Utils::Array<Aws::Utils::Json::JsonValue> output_array{{}};
+  Aws::Utils::Array<Aws::Utils::Json::JsonValue> output_array{{static_cast<std::size_t>(output.numel())}};
   CREATE_JSON_ARRAY(output_array, output, {OUTPUT_TYPE}, {AWS_OUTPUT_FUNCTION}, output_ptr)
 #endif
 
   /* If array of results to be returned gather values as JSON */
 #ifdef RETURN_RESULT
-  Aws::Utils::Array<Aws::Utils::Json::JsonValue> result_array{{}};
+  Aws::Utils::Array<Aws::Utils::Json::JsonValue> result_array{{static_cast<std::size_t>(result.numel())}};
   CREATE_JSON_ARRAY(result_array, result, {RESULT_TYPE}, {AWS_RESULT_FUNCTION}, result_ptr)
 #endif
 
@@ -168,13 +172,13 @@ handler(torch::jit::script::Module &module,
           .WithArray("{RESULT_NAME}", result_array)
 #endif
 #ifdef RETURN_RESULT_ITEM
-          .ADD_ITEM(result, {AWS_RESULT_FUNCTION}, {RESULT_NAME}, {RESULT_TYPE})
+          .ADD_ITEM(result, {AWS_RESULT_ITEM_FUNCTION}, "{RESULT_NAME}", {RESULT_TYPE})
 #endif
 #ifdef RETURN_OUTPUT
           .WithArray("{OUTPUT_NAME}", output_array)
 #endif
 #ifdef RETURN_OUTPUT_ITEM
-          .ADD_ITEM(output, {AWS_OUTPUT_FUNCTION}, {OUTPUT_NAME}, {OUTPUT_TYPE})
+          .ADD_ITEM(output, {AWS_OUTPUT_ITEM_FUNCTION}, "{OUTPUT_NAME}", {OUTPUT_TYPE})
 #endif
           .View()
           .WriteCompact(),

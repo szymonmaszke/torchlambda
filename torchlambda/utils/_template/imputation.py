@@ -140,6 +140,34 @@ def divide(settings) -> str:
     return str(settings["divide"])
 
 
+def output_cast(settings) -> str:
+    """
+    Impute libtorch specific type from user provided "human-readable" form.
+
+    See `type_mapping` in source code for exact mapping.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        String specifying type, e.g. "torch::kFloat16"
+    """
+    type_mapping = {
+        "int": "torch::kInt32",
+        "long": "torch::kInt64",
+        "double": "torch::kFloat64",
+    }
+
+    if settings["return"]["output"] is None:
+        return ""
+
+    return type_mapping[settings["return"]["output"]["type"].lower()]
+
+
 def operations_and_arguments(settings):
     """
     If return->result specified get names of operations to apply on output tensor.
@@ -197,14 +225,13 @@ def operations_and_arguments(settings):
         return _no_arguments_multiple_operations(operations)
 
     operations, arguments = _wrap_in_list(operations), _wrap_in_list(arguments)
-    print(operations, arguments)
     output = _operation_with_arguments(operations[0], "output", arguments[0])
     for operation, argument in itertools.zip_longest(operations[1:], arguments[1:]):
         output = _operation_with_arguments(operation, output, argument)
     return output
 
 
-def aws_function(settings, key: str) -> str:
+def aws_function(settings, key: str, array: bool) -> str:
     """
     Internal imputation specifying one of AWS SDK functions based on type.
 
@@ -220,22 +247,24 @@ def aws_function(settings, key: str) -> str:
         YAML parsed to dict
     key : str
         Name of field to look for in type (either "output" or "result")
+    array: bool
+        Whether prefix should be tailored to array output (`As`) or item (`With`)
 
     Returns
     -------
     str:
-        "" or "With<type>" AWS function name
+        "" or "As<type>" or "With<type>" AWS function name
 
     """
     type_mapping = {
-        "bool": "Bool",
         "int": "Integer",
         "long": "Int64",
         "double": "Double",
     }
     if settings["return"][key] is None:
         return ""
-    return "With" + type_mapping[settings["return"][key]["type"].lower()]
+    prefix = "As" if array else "With"
+    return prefix + type_mapping[settings["return"][key]["type"].lower()]
 
 
 def field_if_exists(settings, key: str, name: str) -> str:

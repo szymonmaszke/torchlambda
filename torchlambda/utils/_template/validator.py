@@ -95,7 +95,7 @@ def get():
                             },
                             "type": {
                                 "type": "string",
-                                "allowed": ["bool", "int", "long", "double"],
+                                "allowed": ["int", "long", "double"],
                                 "required": True,
                             },
                             "item": {"type": "boolean", "default": False},
@@ -110,12 +110,10 @@ def get():
                             "name": {"type": "string", "default": "result"},
                             "type": {
                                 "type": "string",
-                                "allowed": ["bool", "int", "long", "double"],
+                                "allowed": ["int", "long", "double"],
                                 "required": True,
                             },
                             "item": {"type": "boolean", "default": False},
-                            # Operation is required as it changes output
-                            # And creates result
                             "operations": {
                                 "oneof": [
                                     {

@@ -33,10 +33,12 @@ fi
 
 echo "torchlambda:: Cloning and building Libtorch..."
 git clone --recursive https://github.com/pytorch/pytorch.git
-echo "- torchlambda:: Resetting PyTorch to official 1.4.0 release..."
 
 if [ "$TORCH_VERSION" != "latest" ]; then
+  echo "torchlambda:: Resetting PyTorch to commit/tag: $TORCH_VERSION"
   cd pytorch && git reset --hard "${TORCH_VERSION}" && cd - || exit 1
+else
+  echo "torchlambda:: PyTorch master head on GitHub will be used"
 fi
 
 # We are using cmake3 and python3 so replace all occurrences of it in the script

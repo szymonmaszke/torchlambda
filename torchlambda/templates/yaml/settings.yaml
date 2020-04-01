@@ -21,6 +21,6 @@ return:
   result:
     type: int
     name: result
-    operation: argmax
+    operations: argmax
     arguments: 1
     item: true

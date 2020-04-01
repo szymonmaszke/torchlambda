@@ -177,14 +177,21 @@ def create_source(settings: typing.Dict) -> str:
             INPUTS=_template.imputation.inputs(settings),
             CAST=_template.imputation.cast(settings),
             DIVIDE=_template.imputation.divide(settings),
+            OUTPUT_CAST=_template.imputation.output_cast(settings),
             OPERATIONS_AND_ARGUMENTS=_template.imputation.operations_and_arguments(
                 settings
             ),
             AWS_OUTPUT_FUNCTION=_template.imputation.aws_function(
-                settings, key="output"
+                settings, key="output", array=True,
             ),
             AWS_RESULT_FUNCTION=_template.imputation.aws_function(
-                settings, key="result"
+                settings, key="result", array=True,
+            ),
+            AWS_OUTPUT_ITEM_FUNCTION=_template.imputation.aws_function(
+                settings, key="output", array=False
+            ),
+            AWS_RESULT_ITEM_FUNCTION=_template.imputation.aws_function(
+                settings, key="output", array=False
             ),
             OUTPUT_TYPE=_template.imputation.field_if_exists(
                 settings, key="output", name="type"
