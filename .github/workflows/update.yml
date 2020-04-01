@@ -8,7 +8,7 @@ on:
 
 jobs:
   tests:
-    name: Python: ${{ matrix.python-version }}, OS: ${{ matrix.os }}, PyTorch: ${{ matrix.pytorch }}
+    name: Python ${{ matrix.python-version }} OS ${{ matrix.os }} PyTorch ${{ matrix.pytorch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
