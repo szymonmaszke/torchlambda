@@ -6,7 +6,7 @@ import setuptools
 def read(here: pathlib.Path, filename, variable):
     namespace = {}
 
-    exec(open(here / "torchlambda" / filename).read(), namespace)  # get version
+    exec(open(here / filename).read(), namespace)  # get version
     return namespace[variable]
 
 
