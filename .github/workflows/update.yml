@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '0 6,18 * * *'
+    - cron: '0 7,19 * * *'
 
 jobs:
   tests:
@@ -39,7 +39,7 @@ jobs:
 
   deploy-docker:
     needs: tests
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'schedule'
     name: Deployment image szymonmaszke/torchlambda:${{ matrix.image}}
     runs-on: ubuntu-latest
     strategy:
