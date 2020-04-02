@@ -3,28 +3,20 @@ import pathlib
 import setuptools
 
 
-def read(here: pathlib.Path, filename, variable):
+def read(filename, variable):
     namespace = {}
-
-    exec(open(here / "torchlambda" / filename).read(), namespace)  # get version
+    exec(open(pathlib.Path("./torchlambda") / filename).read(), namespace)
     return namespace[variable]
-
-
-HERE = pathlib.Path(__file__).resolve().parent
-print("HERE: {}".format(list(HERE.glob("*"))))
-print("CWD: {}".format(list(pathlib.Path().glob("*"))))
-
-raise ValueError
 
 
 setuptools.setup(
     name="torchlambda",
-    version=read(HERE, pathlib.Path("_version.py"), "__version__"),
+    version=read("_version.py", "__version__"),
     license="MIT",
     author="Szymon Maszke",
     author_email="szymon.maszke@protonmail.com",
     description="Minimalistic & easy deployment of PyTorch models on AWS Lambda with C++",
-    long_description=(HERE / "README.md").read_text(),
+    long_description=pathlib.Path("README.md").read_text(),
     long_description_content_type="text/markdown",
     url="https://github.com/pypa/torchlambda",
     packages=setuptools.find_packages(),
