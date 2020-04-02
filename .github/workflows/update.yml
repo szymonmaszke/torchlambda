@@ -16,7 +16,6 @@ jobs:
           - "v1.4.0"
           - "latest"
         python-version:
-          - 3.5
           - 3.6
           - 3.7
           - 3.8
