@@ -11,8 +11,10 @@ def read(here: pathlib.Path, filename, variable):
 
 
 HERE = pathlib.Path(__file__).resolve().parent
-print("HERE: ", HERE.glob("*"))
-print("CWD: ", pathlib.Path().glob("*"))
+print("HERE: {}".format(list(HERE.glob("*"))))
+print("CWD: {}".format(list(pathlib.Path().glob("*"))))
+
+raise ValueError
 
 
 setuptools.setup(
