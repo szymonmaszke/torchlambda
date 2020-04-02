@@ -4,18 +4,18 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '0 7,19 * * *'
+    - cron: '0 3 * * *'
 
 jobs:
   tests:
-    name: Python ${{ matrix.python-version }} OS ${{ matrix.os }} PyTorch ${{ matrix.pytorch }}
+    name: ${{ matrix.os }}-py${{ matrix.python }}-torch${{ matrix.pytorch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         pytorch:
           - "v1.4.0"
           - "latest"
-        python-version:
+        python:
           - 3.6
           - 3.7
           - 3.8
@@ -24,11 +24,11 @@ jobs:
           - ubuntu-16.04
     steps:
       - uses: actions/checkout@v1
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python }}
         uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Update version to new release date
+          python-version: ${{ matrix.python }}
+      - name: Update torchlambda version
         run: ./scripts/release/update_version.sh
       - name: Install dependencies
         run: ./scripts/ci/dependencies.sh
@@ -40,21 +40,20 @@ jobs:
   deploy-docker:
     needs: tests
     if: github.event_name == 'schedule'
-    name: Deployment image szymonmaszke/torchlambda:${{ matrix.image}}
+    name: Deployment image szymonmaszke/torchlambda:${{ matrix.pytorch}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        image:
-          - "v1.3.0"
+        pytorch:
           - "v1.4.0"
           - "latest"
     steps:
       - uses: actions/checkout@v1
-      - name: Set up Python version
+      - name: Set up Python
         uses: actions/setup-python@v1
         with:
           python-version: 3.7
-      - name: Update version to new release date
+      - name: Update torchlambda version
         run: ./scripts/release/update_version.sh
       - name: Install dependencies
         run: ./scripts/ci/dependencies.sh
@@ -65,9 +64,9 @@ jobs:
           docker login
           -u ${{ secrets.DOCKER_USERNAME }}
           -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Deploy image szymonmaszke/torchlambda:${{ matrix.image }}
+      - name: Deploy image szymonmaszke/torchlambda:${{ matrix.pytorch }}
         run: >
-          docker push szymonmaszke/torchlambda:${{ matrix.image }}
+          docker push szymonmaszke/torchlambda:${{ matrix.pytorch }}
 
   deploy-pip:
     needs: tests
@@ -76,9 +75,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: Update version to new release date
+      - name: Update torchlambda version
         run: ./scripts/release/update_version.sh
-      - uses: actions/setup-python@v1
+      - name: Set up Python
+        uses: actions/setup-python@v1
         with:
           python-version: "3.7"
       - name: Install dependencies

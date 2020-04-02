@@ -331,7 +331,7 @@ int main() {
 </details>
 
 
-## 3. Package your source with torchlambda deploy
+## 4. Package your source with torchlambda deploy
 
 Now we have our model and source code. It's time to deploy it as AWS Lambda
 ready `.zip` package.
@@ -349,7 +349,7 @@ for increased performance).
 There are many more things one could set during this step, check `torchlambda deploy --help`
 for full list of available options.
 
-## 4. Package your model as AWS Lambda Layer
+## 5. Package your model as AWS Lambda Layer
 
 As the above source code is roughly `30Mb` in size (AWS Lambda has `250Mb` limit),
 we can put our model as additional layer. To create it run:
@@ -360,13 +360,13 @@ $ torchlambda model ./model.ptc --destination "model.zip"
 
 You will receive `model.zip` layer in your current working directory (`--destination` is optional).
 
-## 5. Deploy to AWS Lambda
+## 6. Deploy to AWS Lambda
 
 From now on you could mostly follow tutorial from [AWS Lambda's C++ Runtime](https://github.com/awslabs/aws-lambda-cpp).
 It is assumed you have AWS CLI configured, check [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) otherwise
 (or see [Test Lambda deployment locally](https://github.com/szymonmaszke/torchlambda/wiki/Test-Lambda-deployment-locally) tutorial)
 
-### 5.1 Create trust policy JSON file
+### 6.1 Create trust policy JSON file
 
 First create the following trust policy JSON file:
 
@@ -386,7 +386,7 @@ $ cat trust-policy.json
 }
 ```
 
-### 5.2 Create IAM role trust policy JSON file
+### 6.2 Create IAM role trust policy JSON file
 
 Run from your shell:
 
@@ -396,7 +396,7 @@ $ aws iam create-role --role-name demo --assume-role-policy-document file://trus
 
 Note down the role `Arn` returned to you after running that command, it will be needed during next step.
 
-### 5.3 Create AWS Lambda function
+### 6.3 Create AWS Lambda function
 
 Create deployment function with the script below:
 
@@ -407,7 +407,7 @@ $ aws lambda create-function --function-name demo \
   --handler torchlambda --zip-file fileb://torchlambda.zip
 ```
 
-### 5.4 Create AWS Layer containing model
+### 6.4 Create AWS Layer containing model
 
 We already have our `ResNet18` packed appropriately, run the following:
 
@@ -427,7 +427,7 @@ $ aws lambda update-function-configuration \
   --layers <specify layer arn from above here>
 ```
 
-## 6. Encode image with `base64` and request your function
+## 7. Encode image with `base64` and request your function
 
 Following script (save it as `request.py`) will send image-like `tensor` encoded using `base64`
 via `aws lambda invoke` to test our function.
@@ -468,7 +468,7 @@ cat output.txt
   {"label": 40}
 ```
 
-__Congratulations, you have deployed ResNet18 classifier using only AWS Lambda in 6 steps__!
+__Congratulations, you have deployed ResNet18 classifier using only AWS Lambda in 7 steps__!
 
 
 # Contributing
