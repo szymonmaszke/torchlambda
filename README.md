@@ -2,9 +2,9 @@
 
 --------------------------------------------------------------------------------
 
-| CD | Docs | Tests | Package | Python | PyTorch | Docker | CodeBeat |
-|----|------|-------|---------|--------|---------|--------|----------|
-| [![CD](https://img.shields.io/static/v1?label=&message=03:00&color=377EF0&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/releases) |[![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | ![Status](https://img.shields.io/github/workflow/status/szymonmaszke/torchlambda/deploy?label=%20&style=for-the-badge) | [![PyPI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.4.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master)
+| Docs | Status | Package | Python | PyTorch | Docker | CodeBeat |
+|------|--------|---------|--------|---------|--------|----------|
+| [![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | ![CD](https://img.shields.io/github/workflow/status/szymonmaszke/torchlambda/tests?label=%20&style=for-the-badge) | [![PyPI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.4.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master)
 
 [__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a tool to deploy [PyTorch](https://pytorch.org/) models
 on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
@@ -44,11 +44,11 @@ __Deployment size__ <sup>[3](#footnote3)</sup>| ~30Mb| +1Gb | N/A | ~67Mb<sup>[4
 
 - [Docker](https://docs.docker.com/) at least of version `17.05` is required.
 See [Official Docker's documentation](https://docs.docker.com/) for installation
-instruction for your operating system
+instruction specific to your operating system
 
 - Install `torchlambda` through [pip](https://pypi.org/project/pip/), [Python](https://www.python.org/)
 version `3.6` or higher is needed. You could also install this software within [conda](https://docs.conda.io/en/latest/)
-or other virutal environment of your choice. Following command should be sufficient:
+or other virtual environment of your choice. Following command should be sufficient:
 
   ```shell
   $ pip install --user torchlambda
@@ -409,7 +409,8 @@ $ aws lambda create-function --function-name demo \
 
 ### 6.4 Create AWS Layer containing model
 
-We already have our `ResNet18` packed appropriately, run the following:
+We already have our `ResNet18` packed appropriately so run the following to make a layer
+from it:
 
 ```shell
 $ aws lambda publish-layer-version --layer-name model \
@@ -418,8 +419,8 @@ $ aws lambda publish-layer-version --layer-name model \
   --zip-file fileb://model.zip
 ```
 
-Please save the `LayerVersionArn` similar to step `5.2` and insert it below to add this layer
-to function from step `5.3`:
+Please save the `LayerVersionArn` just like in `6.2` and insert below to add this layer
+to function from previous step:
 
 ```shell
 $ aws lambda update-function-configuration \
@@ -427,12 +428,15 @@ $ aws lambda update-function-configuration \
   --layers <specify layer arn from above here>
 ```
 
-## 7. Encode image with `base64` and request your function
+This configures whole deployment, now we our model is ready to get incoming requests.
+
+## 7. Encode image with `base64` and make a request
 
 Following script (save it as `request.py`) will send image-like `tensor` encoded using `base64`
 via `aws lambda invoke` to test our function.
 
 ```python
+import argparse
 import base64
 import shlex
 import struct
@@ -441,27 +445,58 @@ import sys
 
 import numpy as np
 
-# Random image-like data
-data = np.random.randint(low=0, high=255, size=(3, 64, 64)).flatten().tolist()
-# Encode using bytes for AWS Lambda compatibility
-image = struct.pack("<{}B".format(len(data)), *data)
-encoded = base64.b64encode(image)
-command = """aws lambda invoke --function-name %s --payload '{"data":"%s"}' %s""" % (
-    sys.argv[1],
-    encoded,
-    sys.argv[2],
-)
 
-subprocess.call(shlex.split(command))
+def parse_arguments():
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("function-name")
+    parser.add_argument("channels", type=int)
+    parser.add_argument("width", type=int)
+    parser.add_argument("height", type=int)
+    parser.add_argument("output", type=int)
+
+    return parser.parse_args()
+
+
+def request(args):
+    # Flatten to send as byte payload
+    random_image = (
+        np.random.randint(
+            low=0, high=255, size=(1, args.channels, args.width, args.height)
+        )
+        .flatten()
+        .tolist()
+    )
+    # Encode using bytes for AWS Lambda compatibility
+    image = struct.pack("<{}B".format(len(data)), *data)
+    # Encode as base64 string
+    encoded = base64.b64encode(image)
+    command = (
+        """aws lambda invoke --function-name {} --payload"""
+        """'{{"data": "{}", "channels": {}, "width": {}, "height": {} }}' {}""".format(
+            args.function_name,
+            args.channels,
+            args.width,
+            args.height,
+            encoded,
+            args.output,
+        )
+    )
+
+    subprocess.call(shlex.split(command))
+
+
+if __name__ == "__main__":
+    args = parse_arguments()
+    request(args)
 ```
 
 Run above script:
 
 ```shell
-$ python request.py demo output.txt
+$ python request.py demo 3 64 64 output.json
 ```
 
-You should get the following response in `output.txt` (your label may vary):
+You should get the following response in `output.json` (your label may vary):
 
 ```shell
 cat output.txt
