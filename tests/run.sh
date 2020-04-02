@@ -41,7 +41,7 @@ for test_case in tests/cases/*.json; do
 
   # Do not pack layer (lambci needs unpacked code and layers)
   echo "$test_case: Request output from function"
-  OUTPUT="$OUTPUT" TEST_CODE="$TEST_CODE" MODEL="$MODEL" timeout 20 python tests/src/request.py "$test_case"
+  OUTPUT="$OUTPUT" TEST_CODE="$TEST_CODE" MODEL="$MODEL" timeout 40 python tests/src/request.py "$test_case"
 
   # Clean up
   rm -rf $SETTINGS $TEST_SETTINGS $TEST_CPP_SOURCE_FOLDER $TEST_PACKAGE $TEST_CODE $MODEL
