@@ -21,7 +21,7 @@ setuptools.setup(
     url="https://github.com/pypa/torchlambda",
     packages=setuptools.find_packages(),
     package_data={"": ["*.sh", "*.txt", "Dockerfile", ".dockerignore", "templates"]},
-    python_requires=">=3.6",
+    python_requires=">=3.5",
     install_requires=["PyYAML>=5.3", "Cerberus>=1.3.2"],
     entry_points={"console_scripts": ["torchlambda=torchlambda.main:main"],},
     classifiers=[
