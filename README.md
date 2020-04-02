@@ -2,17 +2,23 @@
 
 --------------------------------------------------------------------------------
 
-| Version | Docs | PyPI | Python | PyTorch | Docker | CodeBeat |
-|---------|------|------|--------|---------|--------|----------|
-| [![Version](https://img.shields.io/static/v1?label=&message=0.1.0&color=377EF0&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/releases) |[![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | [![Py at least of version `17.05` is required.PI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.2.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master)
+| CD | Docs | Tests | Package | Python | PyTorch | Docker | CodeBeat |
+|----|------|-------|---------|--------|---------|--------|----------|
+| [![CD](https://img.shields.io/static/v1?label=&message=03:00&color=377EF0&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/releases) |[![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | ![Status](https://img.shields.io/github/workflow/status/szymonmaszke/torchlambda/deploy?label=%20&style=for-the-badge) | [![PyPI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.4.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master)
 
-[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a software designed to deply [PyTorch](https://pytorch.org/) models
-on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) cloud service using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
+[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a tool to deploy [PyTorch](https://pytorch.org/) models
+on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
 and [custom C++ runtime](https://github.com/awslabs/aws-lambda-cpp).
 
-Using static compilation size of source code is only __`30 Mb` with all necessary dependencies__.
+Using static compilation of dependencies package size is only __`30 Mb` with all necessary dependencies__.
 This allows users to pass their models as [AWS Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html),
 hence __no other dependencies like [Amazon S3](https://aws.amazon.com/s3/) are required__.
+
+__torchlambda is always fully up to date due to [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) at `03:00`
+every day__.
+This README provides only basic introduction, for full picture
+[please see documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)
+and CLI `--help`.
 
 # Comparison with other deployment tools
 
@@ -28,7 +34,7 @@ __Serverless__ |:heavy_check_mark: | :heavy_check_mark: | :x: | :x: |
 __Required services__ | AWS Lambda | AWS Lambda, AWS S3 | Kubernetes Cluster & cloud provider | Deployable in various settings |
 __Multiple frameworks__ | :x:  | :x: | :heavy_check_mark: | :x: |
 __Latest framework__ <sup>[1](#footnote1)</sup> | :heavy_check_mark: | :x: | :x: | :heavy_check_mark: |
-__Version (higher more mature)__ | 0.1.0 | N/A | [1.0](https://github.com/kubeflow/kubeflow/releases/tag/v1.0) | [2.1.0](https://github.com/tensorflow/serving/releases/tag/2.1.0) |
+__Version (higher more mature)__ | [CD](https://en.wikipedia.org/wiki/Continuous_deployment) | N/A | [1.0](https://github.com/kubeflow/kubeflow/releases/tag/v1.0) | [2.1.0](https://github.com/tensorflow/serving/releases/tag/2.1.0) |
 __Customizable dependencies__ <sup>[2](#footnote2)</sup> | :heavy_check_mark: | :x: | :x: | :x: |
 __Deployment size__ <sup>[3](#footnote3)</sup>| ~30Mb| +1Gb | N/A | ~67Mb<sup>[4](#footnote4)</sup> |
 
@@ -43,9 +49,17 @@ instruction for your operating system
 - Install `torchlambda` through [pip](https://pypi.org/project/pip/), [Python](https://www.python.org/)
 version `3.6` or higher is needed. You could also install this software within [conda](https://docs.conda.io/en/latest/)
 or other virutal environment of your choice. Following command should be sufficient:
+
   ```shell
   $ pip install --user torchlambda
   ```
+
+__torchlambda provides pre-built deployment images tagged after PyTorch versions and rebuilt daily.__ Following images are currently available:
+
+- `szymonmaszke/torchlambda:latest` (head of current PyTorch master branch)
+- `szymonmaszke/torchlambda:1.4.0`
+
+For more info refer to [`torchlambda build` documentation](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-build).
 
 # Example deploy
 
@@ -78,37 +92,121 @@ $ python model.py
 
 You should get `model.ptc` in your current working directory.
 
-## 2. Create deployment code with `torchlambda scheme`
+## 2. Create settings
 
-Writing C++ code might be hard, hence `torchlambda` provides you
-with basic scheme where all you have to do is provide appropriate shapes for inference
-(either passed during request or hard-coded).
+`torchlambda` uses C++ to deploy models hence it might be harder for end users
+to provide necessary source code.
 
-Issue following command:
+To alleviate some of those issues easy to understand `YAML` settings can be used
+to define `outputs` and various elements of neural network and deployment.
+
+Please run the following:
 
 ```shell
-$ torchlambda scheme
+torchlambda settings
 ```
 
-You should see a new folder called `torchlambda` in your current directory.
-Contents of `torchlambda/main.cpp` are the ones you would usually modify.
+This command will generate `torchlambda.yaml` file with __all available commands__
+for you to modify according to your needs. You can see all of them
+with short description below.
 
-Only a few usually changes like (e.g. `input shape` or required fields).
+<details>
 
-If you wish to see the generated C++ scheme code (barely `70` lines) click below:
+  __<summary> Click here to check generated YAML settings </summary>__
+
+```yaml
+---
+grad: False # Turn gradient on/off
+validate_json: true # Validate correctnes of JSON parsing
+data: data # Name of data field passed as JSON
+validate_data: true # Validate correctness of data from request
+model: /opt/model.ptc # Path to model to load
+inputs: [1, 3, width, height] # Shape of input tensor (can be name of field)
+validate_inputs: true # Validate correctness of input fields (if any)
+cast: float # Type to which base64 encoded tensor will be casted
+divide: 255 # Value by which it will be divided
+normalize: # Whether to normalize the tensor
+  means: [0.485, 0.456, 0.406] # Using those means
+  stddevs: [0.229, 0.224, 0.225] # And those standard deviations
+return: # Finally return something in JSON
+  output: # Unmodified output from neural network
+    type: double # Casted to double type (AWS SDK compatible)
+    name: output # Name of the field where value(s) will be returned
+    item: false # If we return single value use True, neural network usually returns more (an array)
+  result: # Return another field result by modifying output
+    operations: argmax # Apply argmax (more operations can be specified as list)
+    arguments: 1 # Over first dimension (more or no arguments can be specified)
+    type: int # Type returned will be integer
+    name: result # Named result
+    item: true # It will be a single item
+```
+
+</details>
+&nbsp;
+
+
+Many fields already have sensible defaults ([see YAML settings file reference](https://github.com/szymonmaszke/torchlambda/wiki/YAML-settings-file-reference))
+hence they will be left for now.
+In our case we will only define bare minimum:
+
+```yaml
+---
+inputs: [1, channels, width, height]
+return:
+  result:
+    operations: argmax
+    type: int
+    name: label
+    item: true
+```
+
+- `inputs: [1, channels, width, height]` - tensor of batch size equal to `1` always
+(static), variable number of channels and variable width and height. Last three
+elements will be passed as `int` fields in JSON request and named accordingly (
+`channels`, `width` and `height`).
+- `return` - return output of the network modified by `argmax`
+operation which creates `result`.
+Our returned `type` will be `int`, and JSON field `name` (__`torchlambda` always returns JSONs__)
+will be `label`. `argmax` over `tensor` will create single (by default the operation is applied over all dimension),
+hence `item` is specified.
+
+Save the above content in `torchlambda.yaml` file.
+
+## 3. Create deployment code with `torchlambda scheme`
+
+Now if we have our settings we can generate C++ code based on it.
+Run the following:
+
+```shell
+$ torchlambda scheme --yaml torchlambda.yaml
+```
+
+You should see a new folder called `torchlambda` in your current directory
+with `main.cpp` file inside.
+
+__If you don't care about C++ you can move on to the next section.
+If you want to know a little more (or have custom application), carry on reading.__
+
+If `YAML` settings cannot fulfil your needs `torchlambda`
+offers you a basic `C++ scheme` you can start your deployment code from.
+
+Run this simple command (no settings needed in this case):
+
+```shell
+$ torchlambda scheme --destination custom_deployment
+```
+
+This time you can find new folder `custom_deployment` with `main.cpp` inside.
+This file is a minimal reasonable and working C++ code one should be able to follow
+easily. It does exactly the same thing (except dynamic shapes) as we did above
+via settings but this time the file is readable (previous `main.cpp` might be quite hard to grasp
+as it's "autogenerated").
 
 <details>
 
   __<summary> Click here to check generated code</summary>__
 
-Code below should be quite easy to follow. Check comments if in doubt or
-request improvements in [Issues]() or make a [Pull Request]() if you have an
-idea to make this section even easier.
-
 ```cpp
-#include <algorithm>
-#include <iterator>
-
 #include <aws/core/Aws.h>
 #include <aws/core/utils/base64/Base64.h>
 #include <aws/core/utils/json/JsonSerializer.h>
@@ -119,17 +217,22 @@ idea to make this section even easier.
 #include <torch/script.h>
 #include <torch/torch.h>
 
+/*!
+ *
+ *                    HANDLE REQUEST
+ *
+ */
+
 static aws::lambda_runtime::invocation_response
 handler(torch::jit::script::Module &module,
         const Aws::Utils::Base64::Base64 &transformer,
         const aws::lambda_runtime::invocation_request &request) {
 
-  /* Name of field containing base64 encoded data */
   const Aws::String data_field{"data"};
 
   /*!
    *
-   *               PARSE AND VALIDATE REQUEST
+   *              PARSE AND VALIDATE REQUEST
    *
    */
 
@@ -145,44 +248,41 @@ handler(torch::jit::script::Module &module,
 
   /*!
    *
-   *            LOAD DATA, TRANSFORM TO TENSOR, NORMALIZE
+   *          LOAD DATA, TRANSFORM TO TENSOR, NORMALIZE
    *
    */
 
   const auto base64_data = json_view.GetString(data_field);
   Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
 
-  /* Copy data and move it to tensor (is there an easier way?) */
-  /* Array holds channels * width * height, input your values below */
-  float data[3 * 64 * 64];
-  std::copy(decoded.GetUnderlyingData(),
-            decoded.GetUnderlyingData() + decoded.GetLength() - 1, data);
-
   torch::Tensor tensor =
-      torch::from_blob(data,
+      torch::from_blob(decoded.GetUnderlyingData(),
                        {
-                           static_cast<long int>(decoded.GetLength()),
-                       })
-          /* Input your data shape for reshape including batch */
+                           static_cast<long>(decoded.GetLength()),
+                       },
+                       torch::kUInt8)
           .reshape({1, 3, 64, 64})
           .toType(torch::kFloat32) /
       255.0;
 
-  /* Normalize tensor with ImageNet mean and stddev */
   torch::Tensor normalized_tensor = torch::data::transforms::Normalize<>{
       {0.485, 0.456, 0.406}, {0.229, 0.224, 0.225}}(tensor);
 
   /*!
    *
-   *              MAKE INFERENCE AND RETURN JSON RESPONSE
+   *                      MAKE INFERENCE
    *
    */
 
-  /* {} will be casted to std::vector<torch::jit::IValue> under the hood */
   auto output = module.forward({normalized_tensor}).toTensor();
   const int label = torch::argmax(output).item<int>();
 
-  /* Return JSON with field label containing predictions*/
+  /*!
+   *
+   *                       RETURN JSON
+   *
+   */
+
   return aws::lambda_runtime::invocation_response::success(
       Aws::Utils::Json::JsonValue{}
           .WithInteger("label", label)
@@ -192,16 +292,17 @@ handler(torch::jit::script::Module &module,
 }
 
 int main() {
-  /* Inference doesn't need gradient, let's turn it off */
-  torch::NoGradGuard no_grad_guard{};
+  /*!
+   *
+   *                        LOAD MODEL ON CPU
+   *                    & SET IT TO EVALUATION MODE
+   *
+   */
 
-  /* Change name/path to your model if you so desire */
-  /* Layers are unpacked to /opt, so you are better off keeping it */
+  torch::NoGradGuard no_grad_guard{};
   constexpr auto model_path = "/opt/model.ptc";
 
-  /* You could add some checks whether the module is loaded correctly */
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
-
   module.eval();
 
   /*!
@@ -243,13 +344,10 @@ $ torchlambda deploy ./torchlambda --compilation "-Wall -O2"
 
 Above will create `torchlambda.zip` file ready for deploy.
 Notice `--compilation` where you can pass any [C++ compilation flags](https://gcc.gnu.org/onlinedocs/gcc/Option-Summary.html) (here `-O2`
-for performance optimization).
+for increased performance).
 
 There are many more things one could set during this step, check `torchlambda deploy --help`
 for full list of available options.
-
-Oh, any don't worry about OS compatibility as __this code is compiled on Amazon's AMI Linux__,
-if it works here it will work "up there".
 
 ## 4. Package your model as AWS Lambda Layer
 
@@ -265,7 +363,8 @@ You will receive `model.zip` layer in your current working directory (`--destina
 ## 5. Deploy to AWS Lambda
 
 From now on you could mostly follow tutorial from [AWS Lambda's C++ Runtime](https://github.com/awslabs/aws-lambda-cpp).
-It is assumed you have AWS CLI configured, if not check [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html).
+It is assumed you have AWS CLI configured, check [Configuring the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) otherwise
+(or see [Test Lambda deployment locally](https://github.com/szymonmaszke/torchlambda/wiki/Test-Lambda-deployment-locally) tutorial)
 
 ### 5.1 Create trust policy JSON file
 
