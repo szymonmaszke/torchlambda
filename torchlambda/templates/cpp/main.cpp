@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <iterator>
-
 #include <aws/core/Aws.h>
 #include <aws/core/utils/base64/Base64.h>
 #include <aws/core/utils/json/JsonSerializer.h>
