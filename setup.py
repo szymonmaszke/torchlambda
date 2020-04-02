@@ -6,11 +6,13 @@ import setuptools
 def read(here: pathlib.Path, filename, variable):
     namespace = {}
 
-    exec(open(here / filename).read(), namespace)  # get version
+    exec(open(here / "torchlambda" / filename).read(), namespace)  # get version
     return namespace[variable]
 
 
 HERE = pathlib.Path(__file__).resolve().parent
+print("HERE: ", HERE.glob("*"))
+print("CWD: ", pathlib.Path().glob("*"))
 
 
 setuptools.setup(
