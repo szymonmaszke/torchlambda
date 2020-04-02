@@ -5,7 +5,7 @@ import setuptools
 
 def read(filename, variable):
     namespace = {}
-    exec(open(pathlib.Path("./torchlambda") / filename).read(), namespace)
+    exec(open(filename).read(), namespace)
     return namespace[variable]
 
 
