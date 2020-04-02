@@ -3,15 +3,15 @@ import pathlib
 import setuptools
 
 
-def read(filename, variable):
+def read(filepath, variable):
     namespace = {}
-    exec(open(filename).read(), namespace)
+    exec(open(filepath).read(), namespace)
     return namespace[variable]
 
 
 setuptools.setup(
     name="torchlambda",
-    version=read("../torchlambda/_version.py", "__version__"),
+    version=read("torchlambda/_version.py", "__version__"),
     license="MIT",
     author="Szymon Maszke",
     author_email="szymon.maszke@protonmail.com",
