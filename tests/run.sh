@@ -2,7 +2,9 @@
 
 set -e
 
-IMAGE="torchlambda:custom"
+TORCH_VERSION=$1
+
+IMAGE="szymonmaszke/torchlambda:$TORCH_VERSION"
 
 SETTINGS="./settings.yaml"
 TEST_SETTINGS="./test_settings.yaml"
