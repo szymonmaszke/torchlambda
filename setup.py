@@ -11,7 +11,7 @@ def read(filename, variable):
 
 setuptools.setup(
     name="torchlambda",
-    version=read("_version.py", "__version__"),
+    version=read("../torchlambda/_version.py", "__version__"),
     license="MIT",
     author="Szymon Maszke",
     author_email="szymon.maszke@protonmail.com",
