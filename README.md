@@ -2,11 +2,9 @@
 
 --------------------------------------------------------------------------------
 
-| Docs | Status | Package | Python | PyTorch | Docker | CodeBeat |
-|------|--------|---------|--------|---------|--------|----------|
-| [![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | ![CD](https://img.shields.io/github/workflow/status/szymonmaszke/torchlambda/tests?label=%20&style=for-the-badge) | [![PyPI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.4.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master)
-
-[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a tool to deploy [PyTorch](https://pytorch.org/) models
+| Docs | Status | Package | Python | PyTorch | Docker | CodeBeat | Images |
+|------|--------|---------|--------|---------|--------|----------|--------|
+| [![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | ![CD](https://img.shields.io/github/workflow/status/szymonmaszke/torchlambda/tests?label=%20&style=for-the-badge) | [![PyPI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.4.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master) | [![Images](https://img.shields.io/static/v1?label=&message=Tags&color=309cef&style=for-the-badge)](https://hub.docker.com/r/szymonmaszke/torchlambda/tags)
 on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
 and [custom C++ runtime](https://github.com/awslabs/aws-lambda-cpp).
 
@@ -17,12 +15,12 @@ hence __no other dependencies like [Amazon S3](https://aws.amazon.com/s3/) are r
 __torchlambda is always fully up to date due to [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) at `03:00`
 every day__.
 This README provides only basic introduction, for full picture
-[please see documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)
+[please see documentation](https://github.com/szymonmaszke/torchlambda/wiki)
 and CLI `--help`.
 
 # Comparison with other deployment tools
 
-__Improve this comparison's reliability via [Pull Request](), thanks.
+__Improve this comparison's reliability via [Pull Request](https://github.com/szymonmaszke/torchlambda/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc), thanks.
 Also show guys below some love by visiting their projects (just click on the name).__
 
 Trait / Tool | torchlambda | [fastai Lambda](https://course.fast.ai/deployment_aws_lambda.html) | [KubeFlow](https://www.kubeflow.org/) | [Tensorflow Serving](https://github.com/tensorflow/serving) |
@@ -56,10 +54,11 @@ or other virtual environment of your choice. Following command should be suffici
 
 __torchlambda provides pre-built deployment images tagged after PyTorch versions and rebuilt daily.__ Following images are currently available:
 
-- `szymonmaszke/torchlambda:latest` (head of current PyTorch master branch)
-- `szymonmaszke/torchlambda:1.4.0`
+- [`szymonmaszke/torchlambda:latest`](https://hub.docker.com/layers/szymonmaszke/torchlambda/latest/images/sha256-7d493f3b61d37446466e3140ba516bd18179781a05cfe0331bf833f551a37f0e?context=explore) (head of current PyTorch master branch)
+- [`szymonmaszke/torchlambda:1.4.0`](https://hub.docker.com/layers/szymonmaszke/torchlambda/v1.4.0/images/sha256-e92361e5fc1ecc91200d63a1d4d0c88c3f91cd7aff3859689f1542cec4956a43?context=explore)
 
-For more info refer to [`torchlambda build` documentation](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-build).
+For more info refer to [`torchlambda build` documentation](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-build)
+and how to build your own custom images to use for deployment.
 
 # Example deploy
 
