@@ -1,13 +1,15 @@
 # Reference file for fields:
 # https://github.com/szymonmaszke/torchlambda/wiki/YAML-settings-file-reference
 ---
-grad: False
+grad: false
 validate_json: true
-data: data
-validate_data: true
 model: /opt/model.ptc
-inputs: [1, 3, width, height]
-validate_inputs: true
+input:
+  name: data
+  validate_field: true
+  type: float
+  shape: [1, 3, width, height]
+  validate_shape: true
 cast: float
 divide: 255
 normalize:

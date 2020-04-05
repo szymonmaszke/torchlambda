@@ -16,7 +16,7 @@ def data(settings) -> str:
     str:
         "name_of_data_field"
     """
-    return '"' + settings["data"] + '"'
+    return '"' + settings["input"]["name"] + '"'
 
 
 def fields(settings) -> str:
@@ -37,8 +37,40 @@ def fields(settings) -> str:
         "field1", "field2", ..., "fieldN"
     """
     return ", ".join(
-        ['"' + field + '"' for field in settings["inputs"] if isinstance(field, str)]
+        [
+            '"' + field + '"'
+            for field in settings["input"]["shape"]
+            if isinstance(field, str)
+        ]
     )
+
+
+def data_type(settings) -> str:
+    type_mapping = {
+        "base64": "",
+        "byte": "uint8_t",
+        "char": "int8_t",
+        "short": "int16_t",
+        "int": "int32_t",
+        "long": "int64_t",
+        "float": "float",
+        "double": "double",
+    }
+    return type_mapping[settings["input"]["type"]]
+
+
+def data_func(settings) -> str:
+    type_mapping = {
+        "base64": "",
+        "byte": "Integer",
+        "char": "Integer",
+        "short": "Integer",
+        "int": "Integer",
+        "long": "Int64",
+        "float": "Double",
+        "double": "Double",
+    }
+    return "As" + type_mapping[settings["input"]["type"]]
 
 
 def normalize(settings, key: str) -> str:
@@ -60,6 +92,20 @@ def normalize(settings, key: str) -> str:
     if settings["normalize"] is None:
         return ""
     return ", ".join(map(str, settings["normalize"][key]))
+
+
+def torch_data_type(settings):
+    type_mapping = {
+        "base64": "",
+        "byte": "torch::kUInt8",
+        "char": "torch::kInt8",
+        "short": "torch::kInt16",
+        "int": "torch::kInt32",
+        "long": "torch::kInt64",
+        "float": "torch::kFloat32",
+        "double": "torch::kFloat64",
+    }
+    return type_mapping[settings["input"]["type"]]
 
 
 def inputs(settings) -> str:
@@ -85,59 +131,8 @@ def inputs(settings) -> str:
         str(elem)
         if isinstance(elem, int)
         else 'json_view.GetInteger("{}")'.format(elem)
-        for elem in settings["inputs"]
+        for elem in settings["input"]["shape"]
     )
-
-
-def cast(settings) -> str:
-    """
-    Impute libtorch specific type from user provided "human-readable" form.
-
-    See `type_mapping` in source code for exact mapping.
-
-    Parameters
-    ----------
-    settings : typing.Dict
-        YAML parsed to dict
-
-    Returns
-    -------
-    str:
-        String specifying type, e.g. "torch::kFloat16"
-    """
-    type_mapping = {
-        "byte": "torch::kUInt8",
-        "char": "torch::kInt8",
-        "short": "torch::kInt16",
-        "int": "torch::kInt32",
-        "long": "torch::kInt64",
-        "half": "torch::kFloat16",
-        "float": "torch::kFloat32",
-        "double": "torch::kFloat64",
-    }
-
-    return type_mapping[settings["cast"].lower()]
-
-
-def divide(settings) -> str:
-    """
-    Impute value by which casted tensor will be divided.
-
-    If user doesn't want to cast tensor, he should simply specify `1`,
-    though it won't be used too often.
-
-    Parameters
-    ----------
-    settings : typing.Dict
-        YAML parsed to dict
-
-    Returns
-    -------
-    str:
-        string representation of number, e.g. "255.0"
-
-    """
-    return str(settings["divide"])
 
 
 def output_cast(settings) -> str:

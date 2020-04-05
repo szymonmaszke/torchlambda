@@ -30,22 +30,41 @@ def _is_not_dict(field, value, error):
         error(field, "field cannot be an instance of dict")
 
 
+# Fix validator
 def get():
     return Validator(
         {
             "grad": {"type": "boolean", "default": False},
             "validate_json": {"type": "boolean", "default": True},
-            "data": {"type": "string", "default": "data", "empty": False},
-            "validate_data": {"type": "boolean", "default": True},
             "model": {"type": "string", "default": "/opt/model.ptc", "empty": False},
-            "inputs": {
-                "type": "list",
-                "schema": {"type": ["string", "integer"]},
-                "required": True,
-                "minlength": 2,
-                "empty": False,
+            "input": {
+                "type": "dict",
+                "schema": {
+                    "name": {"type": "string", "default": "data", "empty": False},
+                    "validate_field": {"type": "boolean", "default": True},
+                    "type": {
+                        "type": "string",
+                        "allowed": [
+                            "base64",
+                            "byte",
+                            "char",
+                            "short",
+                            "int",
+                            "long",
+                            "float",
+                            "double",
+                        ],
+                    },
+                    "shape": {
+                        "type": "list",
+                        "schema": {"type": ["string", "integer"]},
+                        "required": True,
+                        "minlength": 2,
+                        "empty": False,
+                    },
+                    "validate_shape": {"type": "boolean", "default": True},
+                },
             },
-            "validate_inputs": {"type": "boolean", "default": True},
             "cast": {
                 "type": "string",
                 "allowed": [

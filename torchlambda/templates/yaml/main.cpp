@@ -1,14 +1,20 @@
 {STATIC}
 
-{VALIDATE_JSON}
-
-{VALIDATE_DATA}
-
-{VALIDATE_INPUTS}
-
 {GRAD}
 
+{VALIDATE_JSON}
+
+{BASE64}
+
+{VALIDATE_FIELD}
+
+{VALIDATE_SHAPE}
+
 {NORMALIZE}
+
+{CAST}
+
+{DIVIDE}
 
 {RETURN_OUTPUT}
 
@@ -39,10 +45,10 @@
  *
  */
 
-#define CREATE_JSON_ARRAY(json_array, data, type, func, ptr_name)              \
-  auto* ptr_name = data.data_ptr<type>();                                      \
+#define CREATE_JSON_ARRAY(decoded, data, type, func, ptr_name)                 \
+  const auto* ptr_name = data.data_ptr<type>();                          \
   for (int64_t i=0; i < data.numel(); ++i)                                     \
-    json_array[i] = Aws::Utils::Json::JsonValue{{}}.func(*ptr_name++);
+    decoded[i] = Aws::Utils::Json::JsonValue{{}}.func(*ptr_name++);
 
 #define ADD_ITEM(value, func, name, type)                                      \
   func(name, value.flatten().item<type>())
@@ -56,8 +62,12 @@
 
 static aws::lambda_runtime::invocation_response
 handler(torch::jit::script::Module &module,
-        const Aws::Utils::Base64::Base64 &transformer,
-        const aws::lambda_runtime::invocation_request &request) {{
+        const aws::lambda_runtime::invocation_request &request
+#ifdef BASE64
+        , 
+        const Aws::Utils::Base64::Base64 &transformer
+#endif
+  ){{
 
   const Aws::String data_field{{ {DATA} }};
 
@@ -75,17 +85,26 @@ handler(torch::jit::script::Module &module,
         "Failed to parse request JSON file.", "InvalidJSON");
 #endif
 
-#ifdef VALIDATE_DATA
+#ifdef VALIDATE_FIELD
   const auto json_view = json.View();
   if (!json_view.KeyExists(data_field))
     return aws::lambda_runtime::invocation_response::failure(
         "Required field: \"" {DATA} "\" was not provided.", "InvalidJSON");
+#ifdef BASE64
+  if (!json_view.GetObject(data_field).IsString())
+    return aws::lambda_runtime::invocation_response::failure(
+        "Required field: \"" {DATA} "\" is not .", "InvalidJSON");
+#else
+  if (!json_view.GetObject(data_field).IsListType())
+    return aws::lambda_runtime::invocation_response::failure(
+        "Required field: \"" {DATA} "\" is not .", "InvalidJSON");
+#endif
 #endif
 
-#if not defined(STATIC) && defined(VALIDATE_INPUTS)
+#if not defined(STATIC) && defined(VALIDATE_SHAPE)
   /* Check whether all necessary fields are passed */
 
-  Aws::String fields[]{{ {FIELDS} }};
+  const Aws::String fields[]{{ {FIELDS} }};
   for (const auto &field : fields) {{
     if (!json_view.KeyExists(field))
       return aws::lambda_runtime::invocation_response::failure(
@@ -108,27 +127,47 @@ handler(torch::jit::script::Module &module,
    *
    */
 
-  const auto base64_data = json_view.GetString(data_field);
-  Aws::Utils::ByteBuffer decoded = transformer.Decode(base64_data);
+#ifdef BASE64
+  const auto base64_string = json_view.GetString(data_field);
+  const auto data = transformer.Decode(base64_string);
+  auto* const data_pointer = data.GetUnderlyingData();
+  const std::size_t data_length = data.GetLength();
+#else
+  const auto nested_json = json_view.GetArray(data_field);
+  std::vector<{DATA_TYPE}> data;
+  data.reserve(nested_json.GetLength());
+
+  for(size_t i=0; i<nested_json.GetLength(); ++i){{
+    data.push_back(static_cast<{DATA_TYPE}>(nested_json[i].{DATA_FUNC}()));
+  }}
+
+  auto* const data_pointer = data.data();
+  const std::size_t data_length = nested_json.GetLength();
+#endif
 
 
 
   /* Const tensor? */
-  torch::Tensor tensor =
+  const torch::Tensor tensor =
 #ifdef NORMALIZE
       torch::data::transforms::Normalize<>{{ {{{NORMALIZE_MEANS}}},
                                             {{{NORMALIZE_STDDEVS}}} }}(
 #endif
           torch::from_blob(
-              decoded.GetUnderlyingData(),
+              data_pointer,
               {{
                   /* Explicit cast as PyTorch has long int for some reason */
-                  static_cast<long>(decoded.GetLength()),
+                  static_cast<long>(data_length),
               }},
-              torch::kUInt8)
-              .reshape( {{{INPUTS}}} )
-              .toType( {CAST} ) /
-          {DIVIDE}
+              {TORCH_DATA_TYPE} 
+          )
+          .reshape( {{{INPUTS}}} )
+#ifdef CAST
+          .toType( CAST ) 
+#endif
+#ifdef DIVIDE
+          / DIVIDE
+#endif
 #ifdef NORMALIZE
       )
 #endif
@@ -141,7 +180,7 @@ handler(torch::jit::script::Module &module,
    */
 
   /* Support for multi-output/multi-input? */
-  auto output = module.forward({{tensor}}).toTensor()
+  const auto output = module.forward({{tensor}}).toTensor()
 #ifdef RETURN_OUTPUT
     .toType( {OUTPUT_CAST} )
 #endif
@@ -150,7 +189,7 @@ handler(torch::jit::script::Module &module,
 
   /* Perform operation to create result */
 #if defined(RETURN_RESULT) || defined(RETURN_RESULT_ITEM)
-  auto result = {OPERATIONS_AND_ARGUMENTS};
+  const auto result = {OPERATIONS_AND_ARGUMENTS};
 #endif
 
   /* If array of outputs to be returned gather values as JSON */
@@ -212,9 +251,16 @@ int main() {{
   {{
     const Aws::Utils::Base64::Base64 transformer{{}};
     const auto handler_fn =
-        [&module,
-         &transformer](const aws::lambda_runtime::invocation_request &request) {{
-          return handler(module, transformer, request);
+        [&module
+#ifdef BASE64
+         , &transformer
+#endif
+        ](const aws::lambda_runtime::invocation_request &request) {{
+          return handler(module, request
+#ifdef BASE64
+              ,transformer
+#endif
+          );
         }};
     aws::lambda_runtime::run_handler(handler_fn);
   }}

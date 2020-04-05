@@ -19,8 +19,27 @@ def static(settings) -> str:
         Either "" or "#define STATIC"
     """
     return macro.conditional(
-        all(isinstance(x, int) for x in settings["inputs"]), "STATIC"
+        all(isinstance(x, int) for x in settings["input"]["shape"]), "STATIC"
     )
+
+
+def grad(settings) -> str:
+    """
+    Return #define GRAD if grad: True specified.
+
+    If specified, libtorch's grad addition to ATen will be turned on.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        Either "" or "#define GRAD"
+    """
+    return macro.conditional(settings["grad"], "GRAD")
 
 
 def validate_json(settings) -> str:
@@ -43,9 +62,33 @@ def validate_json(settings) -> str:
     return macro.conditional(settings["validate_json"], "VALIDATE_JSON")
 
 
-def validate_data(settings) -> str:
+def base64(settings) -> str:
     """
-    Return #define VALIDATE_DATA if validate_json: True specified.
+    Return #define BASE64 if input->type is equal to base64.
+
+    If specified, it is assumed data is in base64 string format and will be decoded
+    in handler. In this case input_type IS NOT USED and data type will be
+    unsigned int 8 upon creation (which can be optionally casted).
+
+    If not, it is assumed data will be a flat array of specified by user via
+    input_type.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        Either "" or "#define BASE64"
+    """
+    return macro.conditional(settings["input"]["type"] == "base64", "BASE64")
+
+
+def validate_field(settings) -> str:
+    """
+    Return #define VALIDATE_FIELD if validate_field: True specified.
 
     If specified, data will be checked for correctness
     (only whether `data` field exists).
@@ -60,14 +103,14 @@ def validate_data(settings) -> str:
     Returns
     -------
     str:
-        Either "" or "#define VALIDATE_DATA"
+        Either "" or "#define VALIDATE_FIELD"
     """
-    return macro.conditional(settings["validate_data"], "VALIDATE_DATA")
+    return macro.conditional(settings["input"]["validate_field"], "VALIDATE_FIELD")
 
 
-def validate_inputs(settings) -> str:
+def validate_shape(settings) -> str:
     """
-    Return #define VALIDATE_INPUTS if validate_inputs: True specified.
+    Return #define VALIDATE_SHAPE if validate_inputs: True specified.
 
     If specified, input fields will be checked (if any exist).
     All of them will be checked for existence and whether their type
@@ -83,28 +126,9 @@ def validate_inputs(settings) -> str:
     Returns
     -------
     str:
-        Either "" or "#define VALIDATE_INPUTS"
+        Either "" or "#define VALIDATE_SHAPE"
     """
-    return macro.conditional(settings["validate_inputs"], "VALIDATE_INPUTS")
-
-
-def grad(settings) -> str:
-    """
-    Return #define GRAD if grad: True specified.
-
-    If specified, libtorch's grad addition to ATen will be turned on.
-
-    Parameters
-    ----------
-    settings : typing.Dict
-        YAML parsed to dict
-
-    Returns
-    -------
-    str:
-        Either "" or "#define GRAD"
-    """
-    return macro.conditional(settings["grad"], "GRAD")
+    return macro.conditional(settings["input"]["validate_shape"], "VALIDATE_SHAPE")
 
 
 def normalize(settings) -> str:
@@ -125,6 +149,59 @@ def normalize(settings) -> str:
         Either "" or "#define NORMALIZE"
     """
     return macro.conditional(settings["normalize"], "NORMALIZE")
+
+
+def cast(settings) -> str:
+    """
+    Impute libtorch specific type from user provided "human-readable" form.
+
+    See `type_mapping` in source code for exact mapping.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        String specifying type, e.g. "torch::kFloat16"
+    """
+    type_mapping = {
+        "byte": "torch::kUInt8",
+        "char": "torch::kInt8",
+        "short": "torch::kInt16",
+        "int": "torch::kInt32",
+        "long": "torch::kInt64",
+        "half": "torch::kFloat16",
+        "float": "torch::kFloat32",
+        "double": "torch::kFloat64",
+    }
+
+    return macro.conditional(
+        settings["cast"], "CAST", type_mapping[settings["cast"].lower()]
+    )
+
+
+def divide(settings) -> str:
+    """
+    Impute value by which casted tensor will be divided.
+
+    If user doesn't want to cast tensor, he should simply specify `1`,
+    though it won't be used too often.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        string representation of number, e.g. "255.0"
+
+    """
+    return macro.conditional(settings["divide"], "DIVIDE", settings["divide"])
 
 
 def return_output(settings):

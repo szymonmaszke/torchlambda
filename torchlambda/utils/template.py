@@ -161,10 +161,13 @@ def create_source(settings: typing.Dict) -> str:
             # Top level defines
             STATIC=_template.header.static(settings),
             VALIDATE_JSON=_template.header.validate_json(settings),
-            VALIDATE_DATA=_template.header.validate_data(settings),
-            VALIDATE_INPUTS=_template.header.validate_inputs(settings),
+            BASE64=_template.header.base64(settings),
+            VALIDATE_FIELD=_template.header.validate_field(settings),
+            VALIDATE_SHAPE=_template.header.validate_shape(settings),
             GRAD=_template.header.grad(settings),
             NORMALIZE=_template.header.normalize(settings),
+            CAST=_template.header.cast(settings),
+            DIVIDE=_template.header.divide(settings),
             RETURN_OUTPUT=_template.header.return_output(settings),
             RETURN_OUTPUT_ITEM=_template.header.return_output_item(settings),
             RETURN_RESULT=_template.header.return_result(settings),
@@ -172,11 +175,12 @@ def create_source(settings: typing.Dict) -> str:
             # Direct insertions
             DATA=_template.imputation.data(settings),
             FIELDS=_template.imputation.fields(settings),
+            DATA_TYPE=_template.imputation.data_type(settings),
+            DATA_FUNC=_template.imputation.data_func(settings),
             NORMALIZE_MEANS=_template.imputation.normalize(settings, key="means"),
             NORMALIZE_STDDEVS=_template.imputation.normalize(settings, key="stddevs"),
+            TORCH_DATA_TYPE=_template.imputation.torch_data_type(settings),
             INPUTS=_template.imputation.inputs(settings),
-            CAST=_template.imputation.cast(settings),
-            DIVIDE=_template.imputation.divide(settings),
             OUTPUT_CAST=_template.imputation.output_cast(settings),
             OPERATIONS_AND_ARGUMENTS=_template.imputation.operations_and_arguments(
                 settings
