@@ -1,13 +1,15 @@
 import pathlib
 
-from .. import utils
+from .. import implementation
 
 
 def run(args):
     """Entrypoint for `torchlambda template` command"""
-    with utils.general.message("creating C++ scheme at {}.".format(args.destination)):
+    with implementation.general.message(
+        "creating C++ scheme at {}.".format(args.destination)
+    ):
         if args.yaml is None:
-            utils.general.run(
+            implementation.general.run(
                 "cp -r ./templates/cpp {}".format(
                     pathlib.Path(args.destination).absolute()
                 ),
@@ -15,4 +17,4 @@ def run(args):
                 silent=args.silent,
             )
         else:
-            utils.template.create_template(args)
+            implementation.template.create_template(args)

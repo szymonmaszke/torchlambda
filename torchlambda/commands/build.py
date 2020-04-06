@@ -1,11 +1,11 @@
-from .. import utils
+from .. import implementation
 
 
 def run(args):
     """Entrypoint for `torchlambda build` command"""
-    utils.docker.check()
+    implementation.docker.check()
 
-    with utils.general.message("deployment."):
-        image = utils.build.get_image(args)
+    with implementation.general.message("deployment."):
+        image = implementation.build.get_image(args)
         if not args.no_run:
-            utils.build.get_package(args, image)
+            implementation.build.get_package(args, image)

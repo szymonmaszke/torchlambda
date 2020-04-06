@@ -4,7 +4,7 @@ import typing
 
 import yaml
 
-from . import _template, general
+from . import general, utils
 
 
 @general.message("reading YAML settings.")
@@ -35,7 +35,7 @@ def validate(validator, settings: typing.Dict) -> None:
     """
     Validate user provided YAML settings.
 
-    Uses custom validator, see `_template/validator.py` for
+    Uses custom validator, see `utils.template/validator.py` for
     exact validation scheme.
 
     Parameters
@@ -61,8 +61,8 @@ def create_source(settings: typing.Dict) -> str:
     Each field is either a header (#define NAME <value>, <value> optional)
     or is directly imputed into source code.
 
-    First case and all needed processing is located in `_template.header`,
-    second case and all needed processing is located in `_template.imputation`
+    First case and all needed processing is located in `utils.template.header`,
+    second case and all needed processing is located in `utils.template.imputation`
 
     `template/main.cpp` template file uses double curly brackets ({{}}) where normal
     C++ brackets are used in order to be compatible with `str.format`, see
@@ -159,57 +159,59 @@ def create_source(settings: typing.Dict) -> str:
     with open(cwd / "templates/yaml/main.cpp") as file:
         return file.read().format(
             # Top level defines
-            STATIC=_template.header.static(settings),
-            GRAD=_template.header.grad(settings),
-            VALIDATE_JSON=_template.header.validate_json(settings),
-            BASE64=_template.header.base64(settings),
-            VALIDATE_FIELD=_template.header.validate_field(settings),
-            VALIDATE_SHAPE=_template.header.validate_shape(settings),
-            NORMALIZE=_template.header.normalize(settings),
-            CAST=_template.header.cast(settings),
-            DIVIDE=_template.header.divide(settings),
-            RETURN_OUTPUT=_template.header.return_output(settings),
-            RETURN_OUTPUT_ITEM=_template.header.return_output_item(settings),
-            RETURN_RESULT=_template.header.return_result(settings),
-            RETURN_RESULT_ITEM=_template.header.return_result_item(settings),
+            STATIC=utils.template.header.static(settings),
+            GRAD=utils.template.header.grad(settings),
+            VALIDATE_JSON=utils.template.header.validate_json(settings),
+            BASE64=utils.template.header.base64(settings),
+            VALIDATE_FIELD=utils.template.header.validate_field(settings),
+            VALIDATE_SHAPE=utils.template.header.validate_shape(settings),
+            NORMALIZE=utils.template.header.normalize(settings),
+            CAST=utils.template.header.cast(settings),
+            DIVIDE=utils.template.header.divide(settings),
+            RETURN_OUTPUT=utils.template.header.return_output(settings),
+            RETURN_OUTPUT_ITEM=utils.template.header.return_output_item(settings),
+            RETURN_RESULT=utils.template.header.return_result(settings),
+            RETURN_RESULT_ITEM=utils.template.header.return_result_item(settings),
             # Direct insertions
-            DATA=_template.imputation.data(settings),
-            FIELDS=_template.imputation.fields(settings),
-            DATA_TYPE=_template.imputation.data_type(settings),
-            DATA_FUNC=_template.imputation.data_func(settings),
-            NORMALIZE_MEANS=_template.imputation.normalize(settings, key="means"),
-            NORMALIZE_STDDEVS=_template.imputation.normalize(settings, key="stddevs"),
-            TORCH_DATA_TYPE=_template.imputation.torch_data_type(settings),
-            INPUTS=_template.imputation.inputs(settings),
-            OUTPUT_CAST=_template.imputation.output_cast(settings),
-            OPERATIONS_AND_ARGUMENTS=_template.imputation.operations_and_arguments(
+            DATA=utils.template.imputation.data(settings),
+            FIELDS=utils.template.imputation.fields(settings),
+            DATA_TYPE=utils.template.imputation.data_type(settings),
+            DATA_FUNC=utils.template.imputation.data_func(settings),
+            NORMALIZE_MEANS=utils.template.imputation.normalize(settings, key="means"),
+            NORMALIZE_STDDEVS=utils.template.imputation.normalize(
+                settings, key="stddevs"
+            ),
+            TORCH_DATA_TYPE=utils.template.imputation.torch_data_type(settings),
+            INPUTS=utils.template.imputation.inputs(settings),
+            OUTPUT_CAST=utils.template.imputation.output_cast(settings),
+            OPERATIONS_AND_ARGUMENTS=utils.template.imputation.operations_and_arguments(
                 settings
             ),
-            AWS_OUTPUT_FUNCTION=_template.imputation.aws_function(
+            AWS_OUTPUT_FUNCTION=utils.template.imputation.aws_function(
                 settings, key="output", array=True,
             ),
-            AWS_RESULT_FUNCTION=_template.imputation.aws_function(
+            AWS_RESULT_FUNCTION=utils.template.imputation.aws_function(
                 settings, key="result", array=True,
             ),
-            AWS_OUTPUT_ITEM_FUNCTION=_template.imputation.aws_function(
+            AWS_OUTPUT_ITEM_FUNCTION=utils.template.imputation.aws_function(
                 settings, key="output", array=False
             ),
-            AWS_RESULT_ITEM_FUNCTION=_template.imputation.aws_function(
+            AWS_RESULT_ITEM_FUNCTION=utils.template.imputation.aws_function(
                 settings, key="result", array=False
             ),
-            OUTPUT_TYPE=_template.imputation.field_if_exists(
+            OUTPUT_TYPE=utils.template.imputation.field_if_exists(
                 settings, key="output", name="type"
             ),
-            RESULT_TYPE=_template.imputation.field_if_exists(
+            RESULT_TYPE=utils.template.imputation.field_if_exists(
                 settings, key="result", name="type"
             ),
-            OUTPUT_NAME=_template.imputation.field_if_exists(
+            OUTPUT_NAME=utils.template.imputation.field_if_exists(
                 settings, key="output", name="name"
             ),
-            RESULT_NAME=_template.imputation.field_if_exists(
+            RESULT_NAME=utils.template.imputation.field_if_exists(
                 settings, key="result", name="name"
             ),
-            MODEL_PATH=_template.imputation.model(settings),
+            MODEL_PATH=utils.template.imputation.model(settings),
         )
 
 
@@ -247,7 +249,7 @@ def create_template(args) -> None:
 
     """
     settings = read_settings(args)
-    validator = _template.validator.get()
+    validator = utils.template.validator.get()
     validate(validator, settings)
     settings = validator.normalized(settings)
 
