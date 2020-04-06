@@ -3,6 +3,15 @@ import typing
 
 
 def validate(args) -> None:
+    """
+    Validate torchscript model is a file. Exit with 1 otherwise
+
+    Parameters
+    ----------
+    args : dict-like
+        User provided arguments parsed by argparse.ArgumentParser instance.
+
+    """
     source = pathlib.Path(args.source)
     if not source.is_file:
         print("torchlambda:: Error: provided path to torchscript model is not a file!")
@@ -10,12 +19,45 @@ def validate(args) -> None:
 
 
 def path(args) -> pathlib.Path:
+    """
+    Return path where model will be placed upon `.zip` unpacking.
+
+    Parameters
+    ----------
+    args : dict-like
+        User provided arguments parsed by argparse.ArgumentParser instance.
+
+    Returns
+    -------
+    pathlib.Path
+
+    """
     if args.directory is not None:
         return pathlib.Path(args.directory) / args.source
     return pathlib.Path(args.source)
 
 
 def compression_level(compression, level):
+    """
+    Validate compression and compression's level user arguments.
+
+    This function return appropriate compression level for any `zipfile.Zipfile`
+    supported values.
+
+    Check: https://docs.python.org/3/library/zipfile.html#zipfile-objects
+    to see possible values for each type.
+
+    Parameters
+    ----------
+    args : dict-like
+        User provided arguments parsed by argparse.ArgumentParser instance.
+
+    Returns
+    -------
+    pathlib.Path
+
+    """
+
     def _wrong_parameters(minimum, maximum):
         print(
             "--level should be in range [{}, {}] for compression type {}".format(
