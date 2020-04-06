@@ -8,6 +8,7 @@ import typing
 
 
 def parse_none(*args):
+    """Return tuple of arguments excluding the ones being None."""
     return tuple(arg if arg is not None else "" for arg in args)
 
 
