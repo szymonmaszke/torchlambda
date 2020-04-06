@@ -1,4 +1,16 @@
-![torchlambda Logo](https://github.com/szymonmaszke/torchlambda/blob/master/assets/banner.png)
+<img align="left" width="256" height="256" src="https://github.com/szymonmaszke/torchlambda/blob/master/assets/banner.png">
+
+[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a tool to deploy [PyTorch](https://pytorch.org/) models
+on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
+and [custom C++ runtime](https://github.com/awslabs/aws-lambda-cpp).
+
+Using statically compiled dependencies __whole package is shrinked to only `30` megabytes__.
+
+This allows users to pass their models as [AWS Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html),
+hence __no other services like [Amazon S3](https://aws.amazon.com/s3/) are needed__.
+
+torchlambda has it's PyTorch & AWS dependencies always up to date because of [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) run at `03:00 a.m.`
+every day.
 
 --------------------------------------------------------------------------------
 
@@ -6,19 +18,10 @@
 |------|--------|---------|--------|---------|--------|----------|--------|
 |[![Documentation](https://img.shields.io/static/v1?label=&message=Wiki&color=EE4C2C&style=for-the-badge)](https://github.com/szymonmaszke/torchlambda/wiki) | ![CD](https://img.shields.io/github/workflow/status/szymonmaszke/torchlambda/tests?label=%20&style=for-the-badge) | [![PyPI](https://img.shields.io/static/v1?label=&message=PyPI&color=377EF0&style=for-the-badge)](https://pypi.org/project/torchlambda/) | [![Python](https://img.shields.io/static/v1?label=&message=>=3.6&color=377EF0&style=for-the-badge&logo=python&logoColor=F8C63D)](https://www.python.org/) | [![PyTorch](https://img.shields.io/static/v1?label=&message=>=1.4.0&color=EE4C2C&style=for-the-badge)](https://pytorch.org/) | [![Docker](https://img.shields.io/static/v1?label=&message=>17.05&color=309cef&style=for-the-badge)](https://cloud.docker.com/u/szymonmaszke/repository/docker/szymonmaszke/torchlambda) | [![codebeat badge](https://codebeat.co/badges/ca6f19c8-29ad-4ddb-beb3-4d4e2fb3aba2)](https://codebeat.co/projects/github-com-szymonmaszke-torchlambda-master) | [![Images](https://img.shields.io/static/v1?label=&message=Tags&color=309cef&style=for-the-badge)](https://hub.docker.com/r/szymonmaszke/torchlambda/tags)|
 
-[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a tool to deploy [PyTorch](https://pytorch.org/) models
-on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
-and [custom C++ runtime](https://github.com/awslabs/aws-lambda-cpp).
 
-Using static compilation of dependencies package size is only __`30 Mb` with all necessary dependencies__.
-This allows users to pass their models as [AWS Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html),
-hence __no other dependencies like [Amazon S3](https://aws.amazon.com/s3/) are required__.
-
-__torchlambda is always fully up to date due to [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) at `03:00`
-every day__.
 This README provides only basic introduction, for full picture
 [please see documentation](https://github.com/szymonmaszke/torchlambda/wiki)
-and CLI `--help`.
+and command line `--help` flag.
 
 # Comparison with other deployment tools
 
