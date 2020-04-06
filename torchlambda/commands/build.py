@@ -2,6 +2,7 @@ from .. import utils
 
 
 def run(args):
+    """Entrypoint for `torchlambda build` command"""
     utils.docker.check()
 
     with utils.general.message("deployment."):

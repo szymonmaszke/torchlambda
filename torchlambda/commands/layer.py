@@ -5,6 +5,7 @@ from .. import utils
 
 
 def run(args):
+    """Entrypoint for `torchlambda layer` command"""
     destination = pathlib.Path(args.destination).absolute()
     with utils.general.message("packing Torchscript model to {}.".format(destination)):
         with zipfile.ZipFile(

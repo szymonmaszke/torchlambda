@@ -4,6 +4,7 @@ from .. import utils
 
 
 def run(args):
+    """Entrypoint for `torchlambda template` command"""
     with utils.general.message("creating C++ scheme at {}.".format(args.destination)):
         if args.yaml is None:
             utils.general.run(

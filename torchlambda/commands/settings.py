@@ -4,6 +4,7 @@ from .. import utils
 
 
 def run(args):
+    """Entrypoint for `torchlambda settings` command"""
     destination = pathlib.Path(args.destination).absolute()
     with utils.general.message("creating YAML settings at {}.".format(destination)):
         utils.general.run(
