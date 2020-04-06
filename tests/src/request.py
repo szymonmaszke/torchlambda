@@ -1,4 +1,5 @@
 import base64
+import contextlib
 import json
 import os
 import pathlib
@@ -6,40 +7,95 @@ import shlex
 import struct
 import subprocess
 import sys
+import time
 
 import numpy as np
 
 import utils
 
 
-def create_request(test):
-    data = np.random.randint(low=0, high=255, size=test["shape"]).flatten().tolist()
-    image = struct.pack("<{}B".format(len(data)), *data)
-    encoded_image = base64.b64encode(image)
+@contextlib.contextmanager
+def clean(container: str) -> None:
+    try:
+        yield
+    finally:
+        # It will be auto-deleted after stopping due to --rm
+        subprocess.check_output(
+            shlex.split("docker container stop {}".format(container))
+        ).decode()
 
-    event = """'{"batch":%d,"channels":%d,"width":%d,"height":%d,"data":"%s"}'""" % (
-        *test["shape"],
-        encoded_image,
-    )
 
+def create_server() -> None:
+    print("Test: Creating Lambda container...")
     source_code = pathlib.Path(os.environ["TEST_CODE"]).absolute()
     model = pathlib.Path(os.environ["MODEL"]).absolute()
     command = (
-        "docker run --rm -v {}:/var/task:ro,delegated "
+        "docker run --rm -d "
+        "-e DOCKER_LAMBDA_STAY_OPEN=1 "
+        "-p 9001:9001 "
+        "-v {}:/var/task:ro,delegated "
         "-v {}:/opt/model.ptc:ro,delegated "
         "lambci/lambda:provided "
-        "torchlambda {} {}".format(source_code, model, event, os.environ["OUTPUT"])
+        "torchlambda".format(source_code, model)
     )
-    return command
+
+    container_id = subprocess.check_output(shlex.split(command)).decode()
+    print("Container ID: {}".format(container_id))
+    return container_id
 
 
-def make_request(command):
+def make_request(test):
+    type_mapping = {
+        "byte": np.uint8,
+        "char": np.int8,
+        "short": np.int16,
+        "int": np.int32,
+        "long": np.int64,
+        "float": np.float32,
+        "double": np.float64,
+    }
+
+    data = np.random.randint(low=0, high=255, size=test["request_shape"]).flatten()
+    if test["input_type"].lower() == "base64":
+        data = base64.b64encode(
+            struct.pack("<{}B".format(len(data)), *(data.tolist()))
+        ).decode()
+    else:
+        data = data.astype(type_mapping[test.input_type]).tolist()
+
+    batch, channels, width, height = test["request_shape"]
+    request = {
+        "batch": batch,
+        "channels": channels,
+        "width": width,
+        "height": height,
+        "data": data,
+    }
+
+    event_file = os.environ["EVENT_FILE"]
+    with open(event_file, "w") as file:
+        json.dump(request, file)
+
+    command = (
+        "aws lambda invoke "
+        "--endpoint http://localhost:9001 "
+        "--no-sign-request "
+        "--function-name torchlambda "
+        "--payload file://{} {}".format(event_file, os.environ["OUTPUT_FILE"])
+    )
+
     try:
-        return json.loads(subprocess.check_output(shlex.split(command)).decode())
+        subprocess.call(shlex.split(command))
     except subprocess.CalledProcessError as e:
-        output = e.output.decode()
-        print("TEST FAILED DURING MAKING REQUEST! OUTPUT: \n {}".format(output))
-        exit(1)
+        print("TEST FAILED DURING MAKING REQUEST! Error: \n {}".format(e))
+        sys.exit(1)
+
+    try:
+        with open(os.environ["OUTPUT_FILE"], "r") as file:
+            return json.load(file)
+    except json.JSONDecodeError as e:
+        print("TEST FAILED DURING OUTPUT_FILE LOADING! Error: \n {}".format(e))
+        sys.exit(1)
 
 
 def validate_response(output, test):
@@ -99,6 +155,7 @@ def validate_response(output, test):
 if __name__ == "__main__":
     args = utils.parse_args()
     test = utils.load_test(args)
-    command = create_request(test)
-    output = make_request(command)
-    validate_response(output, test)
+    container = create_server()
+    with clean(container):
+        output = make_request(test)
+        validate_response(output, test)

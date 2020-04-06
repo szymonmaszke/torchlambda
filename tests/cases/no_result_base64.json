@@ -1,0 +1,9 @@
+{
+  "model": "resnet18",
+  "shape": [1, 3, "width", "height"],
+  "request_shape": [1, 3, 128, 256],
+  "input_type": "base64",
+  "result": false,
+  "required": ["output"],
+  "required_types": ["list_float"]
+}

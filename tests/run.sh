@@ -2,18 +2,24 @@
 
 set -e
 
+# Global test run settings
+
 TORCH_VERSION=$1
 
 IMAGE="szymonmaszke/torchlambda:$TORCH_VERSION"
 
-SETTINGS="./settings.yaml"
-TEST_SETTINGS="./test_settings.yaml"
+SETTINGS="settings.yaml"
+TEST_SETTINGS="test_settings.yaml"
 
-TEST_CPP_SOURCE_FOLDER="./test_cpp_source_folder"
-TEST_PACKAGE="./deployment.zip"
-TEST_CODE="./test_code"
-MODEL="./model.ptc"
-OUTPUT="./output.json"
+TEST_CPP_SOURCE_FOLDER="test_cpp_source_folder"
+TEST_PACKAGE="deployment.zip"
+TEST_CODE="test_code"
+MODEL="model.ptc"
+OUTPUT="output.json"
+
+EVENT_FILE="request.json"
+
+# Run for each test case
 
 for test_case in tests/cases/*.json; do
   printf "\nTEST: %s\n\n" "$test_case"
@@ -41,8 +47,10 @@ for test_case in tests/cases/*.json; do
 
   # Do not pack layer (lambci needs unpacked code and layers)
   echo "$test_case: Request output from function"
-  OUTPUT="$OUTPUT" TEST_CODE="$TEST_CODE" MODEL="$MODEL" timeout 40 python tests/src/request.py "$test_case"
+  OUTPUT_FILE=$OUTPUT EVENT_FILE="$EVENT_FILE" OUTPUT="$OUTPUT" TEST_CODE="$TEST_CODE" MODEL="$MODEL" timeout 40 python tests/src/request.py "$test_case"
+  echo "Size of request:"
+  du -sh $EVENT_FILE
 
   # Clean up
-  rm -rf $SETTINGS $TEST_SETTINGS $TEST_CPP_SOURCE_FOLDER $TEST_PACKAGE $TEST_CODE $MODEL
+  rm -rf $SETTINGS $TEST_SETTINGS $TEST_CPP_SOURCE_FOLDER $TEST_PACKAGE $TEST_CODE $MODEL $EVENT_FILE
 done

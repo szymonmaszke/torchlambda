@@ -1,7 +1,0 @@
-{
-  "model": "mnasnet1_0",
-  "shape": [1, 3, 64, 64],
-  "result": false,
-  "required": ["output"],
-  "required_types": ["list_float"]
-}

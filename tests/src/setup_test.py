@@ -23,24 +23,25 @@ def save(settings):
 
 
 def imput_arguments(settings, test) -> None:
-    def _conditional_change(dictionary, value):
-        dictionary = test.get(value, dictionary)
+    def _conditional_change(dictionary, target, value):
+        dictionary[target] = test.get(value, dictionary[target])
 
     def _conditional_remove(dictionary, key):
         if key in test:
             if not test[key]:
                 dictionary.pop(key)
 
-    _conditional_change(settings["inputs"], "inputs")
-    _conditional_change(settings["normalize"]["means"], "means")
-    _conditional_change(settings["normalize"]["stddevs"], "stddevs")
-    _conditional_change(settings["return"]["result"]["operations"], "operations")
-    _conditional_change(settings["return"]["result"]["arguments"], "arguments")
-    _conditional_change(settings["return"]["result"]["type"], "type")
-    _conditional_change(settings["return"]["result"]["item"], "item")
+    _conditional_change(settings["input"], "shape", "shape")
+    _conditional_change(settings["input"], "type", "input_type")
+    _conditional_change(settings["normalize"], "means", "means")
+    _conditional_change(settings["normalize"], "stddevs", "stddevs")
+    _conditional_change(settings["return"]["result"], "operations", "operations")
+    _conditional_change(settings["return"]["result"], "arguments", "arguments")
+    _conditional_change(settings["return"]["result"], "type", "return_type")
+    _conditional_change(settings["return"]["result"], "item", "item")
 
     # Remove if no output or result should be returned
-    _conditional_change(settings, "normalize")
+    _conditional_remove(settings, "normalize")
     _conditional_remove(settings["return"], "output")
     _conditional_remove(settings["return"], "result")
 

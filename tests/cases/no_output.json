@@ -1,7 +1,0 @@
-{
-  "model": "mnasnet1_0",
-  "shape": [1, 3, 64, 64],
-  "output": false,
-  "required": ["result"],
-  "required_types": ["int"]
-}
