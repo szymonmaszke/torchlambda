@@ -64,8 +64,9 @@ and how to build your own custom images to use for deployment.
 
 # Example deploy
 
-Here is an example of [ResNet18]() model deployment using `torchlambda`.
-Run and create all necessary files in the same directory.
+Below is a mini-tutorial on deployment of [ResNet18](https://arxiv.org/abs/1512.03385) image classifier using `torchlambda`.
+__This is only an example__, for more sophisticated use cases (e.g. `base64` encoding of image or testing deployment locally)
+see [Tutorials](https://github.com/szymonmaszke/torchlambda/wiki/Tutorials) section.
 
 ## 1. Create model to deploy
 
@@ -119,13 +120,15 @@ with short description below.
 ---
 grad: False # Turn gradient on/off
 validate_json: true # Validate correctnes of JSON parsing
-data: data # Name of data field passed as JSON
-validate_data: true # Validate correctness of data from request
 model: /opt/model.ptc # Path to model to load
-inputs: [1, 3, width, height] # Shape of input tensor (can be name of field)
-validate_inputs: true # Validate correctness of input fields (if any)
-cast: float # Type to which base64 encoded tensor will be casted
-divide: 255 # Value by which it will be divided
+input: # Define properties of input
+  name: data # Name of field containing data
+  validate_field: true # Whether above field will be checked for correctness
+  type: float # Type of data in this field (array assumed or base64)
+  shape: [1, 3, width, height] # Input shapes (int or name of field as str)
+  validate_shape: true # Whether to validate fields containing shape info
+cast: float # Type to which tensor will be casted before inference (if any)
+divide: 255 # Value by which it will be divided (if any)
 normalize: # Whether to normalize the tensor
   means: [0.485, 0.456, 0.406] # Using those means
   stddevs: [0.229, 0.224, 0.225] # And those standard deviations
@@ -152,7 +155,11 @@ In our case we will only define bare minimum:
 
 ```yaml
 ---
-inputs: [1, channels, width, height]
+input:
+  shape: [1, channels, width, height]
+  type: byte
+cast: float
+divide: 255
 return:
   result:
     operations: argmax
@@ -161,40 +168,43 @@ return:
     item: true
 ```
 
-- `inputs: [1, channels, width, height]` - tensor of batch size equal to `1` always
-(static), variable number of channels and variable width and height. Last three
-elements will be passed as `int` fields in JSON request and named accordingly (
+- `input` -  tensor of shape `[1, channels, width, height]`, where batch size always equal to `1`
+(static), variable number of channels and variable width and height could be used. Last three
+elements should be passed as `int` fields in JSON request and named accordingly (
 `channels`, `width` and `height`).
+`type` of tensor is specified as `byte` (image with values in range `[0, 255]`).
+- Created tensor will be `cast`ed to `float`
+- And `divide`d by `255` to be in `[0,1]` range as `ResNet18` expects.
 - `return` - return output of the network modified by `argmax`
 operation which creates `result`.
 Our returned `type` will be `int`, and JSON field `name` (__`torchlambda` always returns JSONs__)
 will be `label`. `argmax` over `tensor` will create single (by default the operation is applied over all dimension),
 hence `item` is specified.
 
-Save the above content in `torchlambda.yaml` file.
+Save the above content in `torchlambda.yaml`.
 
-## 3. Create deployment code with `torchlambda scheme`
+## 3. Create deployment code
 
-Now if we have our settings we can generate C++ code based on it.
+Now that we have our settings we can generate C++ code based on it.
 Run the following:
 
 ```shell
-$ torchlambda scheme --yaml torchlambda.yaml
+$ torchlambda template --yaml torchlambda.yaml
 ```
 
 You should see a new folder called `torchlambda` in your current directory
 with `main.cpp` file inside.
 
 __If you don't care about C++ you can move on to the next section.
-If you want to know a little more (or have custom application), carry on reading.__
+If you want to know a little more (or your deployment needs more customization), carry on reading.__
 
 If `YAML` settings cannot fulfil your needs `torchlambda`
-offers you a basic `C++ scheme` you can start your deployment code from.
+offers you a basic `C++ template` you can start your deployment code from.
 
 Run this simple command (no settings needed in this case):
 
 ```shell
-$ torchlambda scheme --destination custom_deployment
+$ torchlambda template --destination custom_deployment
 ```
 
 This time you can find new folder `custom_deployment` with `main.cpp` inside.
@@ -331,8 +341,10 @@ int main() {
 
 </details>
 
+For more info run `torchlambda template --help` or
+[check out documentation](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-template).
 
-## 4. Package your source with torchlambda deploy
+## 4. Package your source as .zip
 
 Now we have our model and source code. It's time to deploy it as AWS Lambda
 ready `.zip` package.
@@ -340,26 +352,29 @@ ready `.zip` package.
 Run from command line:
 
 ```shell
-$ torchlambda deploy ./torchlambda --compilation "-Wall -O2"
+$ torchlambda build ./torchlambda --compilation "-Wall -O2"
 ```
 
 Above will create `torchlambda.zip` file ready for deploy.
 Notice `--compilation` where you can pass any [C++ compilation flags](https://gcc.gnu.org/onlinedocs/gcc/Option-Summary.html) (here `-O2`
 for increased performance).
 
-There are many more things one could set during this step, check `torchlambda deploy --help`
-for full list of available options.
+There are many more things one could set during this step, check `torchlambda build --help`
+or [documentation](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-build)
+for full list of available options and description.
 
 ## 5. Package your model as AWS Lambda Layer
 
-As the above source code is roughly `30Mb` in size (AWS Lambda has `250Mb` limit),
-we can put our model as additional layer. To create it run:
+Our source code is roughly `30Mb` in size (AWS Lambda has `250Mb` limit),
+hence we can put our model as additional layer (so AWS S3 won't be involved).
+To create it run:
 
 ```shell
-$ torchlambda model ./model.ptc --destination "model.zip"
+$ torchlambda layer ./model.ptc --destination "model.zip"
 ```
 
 You will receive `model.zip` layer in your current working directory (`--destination` is optional).
+See `torchlambda layer --help` or [documentation](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-layer) for more info.
 
 ## 6. Deploy to AWS Lambda
 
@@ -431,7 +446,7 @@ $ aws lambda update-function-configuration \
 
 This configures whole deployment, now we our model is ready to get incoming requests.
 
-## 7. Encode image with `base64` and make a request
+## 7. Send image as request to Lambda
 
 Following script (save it as `request.py`) will send image-like `tensor` encoded using `base64`
 via `aws lambda invoke` to test our function.
@@ -459,7 +474,7 @@ def parse_arguments():
 
 
 def request(args):
-    # Flatten to send as byte payload
+    # Input should always be flattened!
     random_image = (
         np.random.randint(
             low=0, high=255, size=(1, args.channels, args.width, args.height)
@@ -467,10 +482,6 @@ def request(args):
         .flatten()
         .tolist()
     )
-    # Encode using bytes for AWS Lambda compatibility
-    image = struct.pack("<{}B".format(len(data)), *data)
-    # Encode as base64 string
-    encoded = base64.b64encode(image)
     command = (
         """aws lambda invoke --function-name {} --payload"""
         """'{{"data": "{}", "channels": {}, "width": {}, "height": {} }}' {}""".format(
@@ -478,7 +489,7 @@ def request(args):
             args.channels,
             args.width,
             args.height,
-            encoded,
+            random_image
             args.output,
         )
     )
