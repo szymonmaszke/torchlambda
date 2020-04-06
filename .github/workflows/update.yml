@@ -35,6 +35,8 @@ jobs:
       - name: Build docker image locally
         run: ./scripts/ci/build.sh ${{ matrix.pytorch }}
       - name: Perform tests
+        env:
+          AWS_DEFAULT_REGION: us-east-1
         run: ./tests/run.sh ${{ matrix.pytorch }}
 
   deploy-docker:
