@@ -93,11 +93,11 @@ handler(torch::jit::script::Module &module,
 #ifdef BASE64
   if (!json_view.GetObject(data_field).IsString())
     return aws::lambda_runtime::invocation_response::failure(
-        "Required field: \"" {DATA} "\" is not .", "InvalidJSON");
+        "Required field: \"" {DATA} "\" is not string.", "InvalidJSON");
 #else
   if (!json_view.GetObject(data_field).IsListType())
     return aws::lambda_runtime::invocation_response::failure(
-        "Required field: \"" {DATA} "\" is not .", "InvalidJSON");
+        "Required field: \"" {DATA} "\" is not list type.", "InvalidJSON");
 #endif
 #endif
 

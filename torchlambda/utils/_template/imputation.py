@@ -96,7 +96,7 @@ def normalize(settings, key: str) -> str:
 
 def torch_data_type(settings):
     type_mapping = {
-        "base64": "",
+        "base64": "torch::kUInt8",
         "byte": "torch::kUInt8",
         "char": "torch::kInt8",
         "short": "torch::kInt16",

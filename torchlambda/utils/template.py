@@ -160,11 +160,11 @@ def create_source(settings: typing.Dict) -> str:
         return file.read().format(
             # Top level defines
             STATIC=_template.header.static(settings),
+            GRAD=_template.header.grad(settings),
             VALIDATE_JSON=_template.header.validate_json(settings),
             BASE64=_template.header.base64(settings),
             VALIDATE_FIELD=_template.header.validate_field(settings),
             VALIDATE_SHAPE=_template.header.validate_shape(settings),
-            GRAD=_template.header.grad(settings),
             NORMALIZE=_template.header.normalize(settings),
             CAST=_template.header.cast(settings),
             DIVIDE=_template.header.divide(settings),

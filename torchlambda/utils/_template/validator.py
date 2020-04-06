@@ -77,9 +77,10 @@ def get():
                     "float",
                     "double",
                 ],
-                "default": "float",
+                "nullable": True,
+                "default": None,
             },
-            "divide": {"type": "number", "default": 255},
+            "divide": {"type": "number", "nullable": True, "default": None},
             "normalize": {
                 "type": "dict",
                 "nullable": True,
