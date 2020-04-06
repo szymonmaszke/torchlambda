@@ -61,7 +61,7 @@ def make_request(test):
             struct.pack("<{}B".format(len(data)), *(data.tolist()))
         ).decode()
     else:
-        data = data.astype(type_mapping[test.input_type]).tolist()
+        data = data.astype(type_mapping[test["input_type"]]).tolist()
 
     batch, channels, width, height = test["request_shape"]
     request = {
