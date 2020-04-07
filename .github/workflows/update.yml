@@ -1,5 +1,5 @@
 ---
-name: tests
+name: update
 on:
   push:
   pull_request:
@@ -39,7 +39,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: ./tests/run.sh ${{ matrix.pytorch }}
 
-  deploy-docker:
+  docker:
     needs: tests
     if: github.event_name == 'schedule'
     name: Deployment image szymonmaszke/torchlambda:${{ matrix.pytorch}}
@@ -70,7 +70,7 @@ jobs:
         run: >
           docker push szymonmaszke/torchlambda:${{ matrix.pytorch }}
 
-  deploy-pip:
+  pip:
     needs: tests
     if: github.event_name == 'schedule'
     name: Create and publish package to PyPI with current timestamp
