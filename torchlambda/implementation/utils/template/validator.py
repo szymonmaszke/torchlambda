@@ -24,6 +24,21 @@ class Validator(cerberus.Validator):
                 ),
             )
 
+    def _validate_broadcastable(self, shape_field: str, field, value):
+        """Test whether one field (arguments) is shorter than other (operations).
+
+        The rule's arguments are validated against this schema:
+        {"type": "string"}
+        """
+        shapes = self.root_document["input"][shape_field]
+        if len(value) != 1 or len(value) != len(shapes):
+            self._error(
+                field,
+                "{} field's shape is not broadcastable to provided input shape: {}".format(
+                    field, shapes
+                ),
+            )
+
 
 def _is_not_dict(field, value, error):
     if isinstance(value, dict):
@@ -41,7 +56,7 @@ def get():
                 "type": "dict",
                 "schema": {
                     "name": {"type": "string", "default": "data", "empty": False},
-                    "validate_field": {"type": "boolean", "default": True},
+                    "validate": {"type": "boolean", "default": True},
                     "type": {
                         "type": "string",
                         "allowed": [
@@ -54,6 +69,7 @@ def get():
                             "float",
                             "double",
                         ],
+                        "required": True,
                     },
                     "shape": {
                         "type": "list",
@@ -63,35 +79,37 @@ def get():
                         "empty": False,
                     },
                     "validate_shape": {"type": "boolean", "default": True},
+                    "cast": {
+                        "type": "string",
+                        "allowed": [
+                            "byte",
+                            "char",
+                            "short",
+                            "int",
+                            "long",
+                            "half",
+                            "float",
+                            "double",
+                        ],
+                        "nullable": True,
+                        "default": None,
+                    },
+                    "divide": {"type": "number", "nullable": True, "default": None},
                 },
             },
-            "cast": {
-                "type": "string",
-                "allowed": [
-                    "byte",
-                    "char",
-                    "short",
-                    "int",
-                    "long",
-                    "half",
-                    "float",
-                    "double",
-                ],
-                "nullable": True,
-                "default": None,
-            },
-            "divide": {"type": "number", "nullable": True, "default": None},
             "normalize": {
                 "type": "dict",
                 "nullable": True,
                 "schema": {
                     "means": {
                         "required": True,
+                        "broadcastable": "shape",
                         "type": "list",
                         "schema": {"type": "number"},
                     },
                     "stddevs": {
                         "required": True,
+                        "broadcastable": "shape",
                         "type": "list",
                         "schema": {"type": "number"},
                     },

@@ -179,7 +179,7 @@ def cast(settings) -> str:
     }
 
     return macro.conditional(
-        settings["cast"], "CAST", type_mapping[settings["cast"].lower()]
+        settings["input"]["cast"], "CAST", type_mapping[settings["cast"].lower()]
     )
 
 
@@ -201,7 +201,7 @@ def divide(settings) -> str:
         string representation of number, e.g. "255.0"
 
     """
-    return macro.conditional(settings["divide"], "DIVIDE", settings["divide"])
+    return macro.conditional(settings["input"]["divide"], "DIVIDE", settings["divide"])
 
 
 def return_output(settings):

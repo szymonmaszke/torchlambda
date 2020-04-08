@@ -6,12 +6,12 @@ validate_json: true
 model: /opt/model.ptc
 input:
   name: data
-  validate_field: true
   type: base64
+  validate: true
   shape: [1, 3, width, height]
   validate_shape: true
-cast: float
-divide: 255
+  cast: float
+  divide: 255
 normalize:
   means: [0.485, 0.456, 0.406]
   stddevs: [0.229, 0.224, 0.225]
