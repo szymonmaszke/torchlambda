@@ -85,8 +85,9 @@ handler(torch::jit::script::Module &module,
         "Failed to parse request JSON file.", "InvalidJSON");
 #endif
 
-#ifdef VALIDATE_FIELD
   const auto json_view = json.View();
+
+#ifdef VALIDATE_FIELD
   if (!json_view.KeyExists(data_field))
     return aws::lambda_runtime::invocation_response::failure(
         "Required field: \"" {DATA} "\" was not provided.", "InvalidJSON");
