@@ -1,49 +1,11 @@
-import base64
-import contextlib
 import json
 import os
-import pathlib
-import random
-import shlex
-import struct
-import subprocess
 import sys
-import typing
 
-import numpy as np
-import yaml
-
-import torchlambda
+import utils
 
 
-def create_command() -> str:
-    return (
-        "aws lambda invoke "
-        "--endpoint http://localhost:9001 "
-        "--no-sign-request "
-        "--function-name torchlambda "
-        "--payload file://{} {}".format(
-            os.environ["PAYLOAD_FILE"], os.environ["RESPONSE"]
-        )
-    )
-
-
-def make_request(settings):
-    print("TEST: Creating data...")
-    data, (batch, channels, width, height) = create_data(settings)
-    print("TEST: Making payload...")
-    create_payload(data, batch, channels, width, height)
-    print("TEST: Creating command to invoke...")
-    command = create_command()
-
-    print("TEST: Invoke command...")
-    try:
-        subprocess.call(shlex.split(command))
-    except subprocess.CalledProcessError as e:
-        print("TEST FAILED DURING MAKING REQUEST! Error: \n {}".format(e))
-        sys.exit(1)
-
-    print("TEST: Opening response...")
+def load_response():
     try:
         with open(os.environ["RESPONSE"], "r") as file:
             return json.load(file)
@@ -104,8 +66,6 @@ def validate_response(response, settings):
 
 
 if __name__ == "__main__":
-    settings = load_settings()
-    container = create_server()
-    with clean(container):
-        response = make_request(settings)
-        # validate_response(response, settings)
+    response = load_response()
+    settings = utils.load_settings()
+    validate_response(response, settings)

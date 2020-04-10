@@ -1,22 +1,20 @@
-import argparse
-import json
+import os
+import pathlib
 import sys
 import typing
 
+import yaml
 
-def parse_args():
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-
-    parser.add_argument("test", help="Specific JSON test settings used")
-
-    return parser.parse_args()
+import torchlambda
 
 
-def load_test(args) -> typing.Dict:
-    with open(args.test, "r") as file:
+def load_settings() -> typing.Dict:
+    with open(pathlib.Path(os.environ["SETTINGS"]).absolute(), "r") as file:
         try:
-            return json.load(file)
-        except Exception as error:
-            print("Test error:: JSON file loaded uncorrectly.")
+            return torchlambda.implementation.utils.template.validator.get().normalized(
+                yaml.safe_load(file)
+            )
+        except yaml.YAMLError as error:
+            print("Test error:: Error during user settings loading.")
             print(error)
             sys.exit(1)
