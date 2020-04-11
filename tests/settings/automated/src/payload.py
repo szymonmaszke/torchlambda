@@ -56,6 +56,9 @@ def create_data(
                 yield dimension
 
     batch, channels, width, height = _get_shape(settings)
+    print(
+        "Test:: Request shape: [{}, {}, {}, {}]".format(batch, channels, width, height)
+    )
     data = np.random.randint(
         low=0, high=255, size=(batch, channels, width, height)
     ).flatten()
@@ -69,7 +72,7 @@ def create_data(
 
 
 if __name__ == "__main__":
-    print("Test: Creating payload")
+    print("Test:: Creating payload")
     settings = utils.load_settings()
     data, (batch, channels, width, height) = create_data(settings)
     create_payload(data, batch, channels, width, height)

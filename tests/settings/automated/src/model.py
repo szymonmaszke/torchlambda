@@ -9,7 +9,6 @@ import utils
 
 def create_model():
     possible_models = [
-        "mnasnet1_0",
         "shufflenet_v2_x1_0",
         "resnet18",
         "mobilenet_v2",
@@ -18,7 +17,7 @@ def create_model():
     ]
 
     model_name = random.choice(possible_models)
-    print("TEST: Creating model {}".format(model_name))
+    print("Test:: Model: {}".format(model_name))
     model = getattr(torchvision.models, model_name)()
 
     script_model = torch.jit.script(model)

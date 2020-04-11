@@ -51,7 +51,7 @@ def post_process(settings: typing.Dict) -> typing.Dict:
 def create_settings() -> None:
     validator = torchlambda.implementation.utils.template.validator.get()
     possibilities = {
-        "grad": OptionGenerator([True, False]),
+        "grad": OptionGenerator([False]),
         "validate_json": OptionGenerator([True, False]),
         "input": {
             "validate": OptionGenerator([True, False]),
@@ -77,7 +77,7 @@ def create_settings() -> None:
         "return": {
             "output": {
                 "type": OptionGenerator(["double"]),
-                "item": OptionGenerator([True, False]),
+                "item": OptionGenerator([False]),
             },
             "result": {
                 "type": OptionGenerator(["int", "long"]),
