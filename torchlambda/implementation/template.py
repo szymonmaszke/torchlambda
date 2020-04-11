@@ -46,7 +46,7 @@ def validate(validator, settings: typing.Dict) -> None:
         YAML parsed to dict
 
     """
-    if not validator.validate(settings):
+    if not validator.validate(settings, normalize=True):
         print("torchlambda:: Error during YAML validation:", file=sys.stderr)
         print(yaml.dump(validator.errors), file=sys.stderr)
         sys.exit(1)
@@ -183,7 +183,8 @@ def create_source(settings: typing.Dict) -> str:
             ),
             TORCH_DATA_TYPE=utils.template.imputation.torch_data_type(settings),
             INPUTS=utils.template.imputation.inputs(settings),
-            OUTPUT_CAST=utils.template.imputation.output_cast(settings),
+            OUTPUT_CAST=utils.template.imputation.aws_to_torch(settings, "output"),
+            RESULT_CAST=utils.template.imputation.aws_to_torch(settings, "result"),
             OPERATIONS_AND_ARGUMENTS=utils.template.imputation.operations_and_arguments(
                 settings
             ),
@@ -199,8 +200,14 @@ def create_source(settings: typing.Dict) -> str:
             AWS_RESULT_ITEM_FUNCTION=utils.template.imputation.aws_function(
                 settings, key="result", array=False
             ),
+            TORCH_OUTPUT_TYPE=utils.template.imputation.torch_approximation(
+                settings, key="output"
+            ),
             OUTPUT_TYPE=utils.template.imputation.field_if_exists(
                 settings, key="output", name="type"
+            ),
+            TORCH_RESULT_TYPE=utils.template.imputation.torch_approximation(
+                settings, key="result"
             ),
             RESULT_TYPE=utils.template.imputation.field_if_exists(
                 settings, key="result", name="type"
