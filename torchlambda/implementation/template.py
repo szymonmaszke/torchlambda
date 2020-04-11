@@ -161,6 +161,7 @@ def create_source(settings: typing.Dict) -> str:
             # Top level defines
             STATIC=utils.template.header.static(settings),
             GRAD=utils.template.header.grad(settings),
+            OPTIMIZE=utils.template.header.optimize(settings),
             VALIDATE_JSON=utils.template.header.validate_json(settings),
             BASE64=utils.template.header.base64(settings),
             VALIDATE_FIELD=utils.template.header.validate_field(settings),

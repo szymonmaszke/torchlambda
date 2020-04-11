@@ -50,6 +50,7 @@ def get():
     return Validator(
         {
             "grad": {"type": "boolean", "default": False},
+            "optimize": {"type": "boolean", "default": False},
             "validate_json": {"type": "boolean", "default": True},
             "model": {"type": "string", "default": "/opt/model.ptc", "empty": False},
             "input": {

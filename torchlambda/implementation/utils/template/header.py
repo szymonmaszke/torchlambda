@@ -42,6 +42,25 @@ def grad(settings) -> str:
     return macro.conditional(settings["grad"], "GRAD")
 
 
+def optimize(settings) -> str:
+    """
+    Return #define GRAD if grad: True specified.
+
+    If specified, libtorch's grad addition to ATen will be turned on.
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        Either "" or "#define GRAD"
+    """
+    return macro.conditional(settings["optimize"], "OPTIMIZE")
+
+
 def validate_json(settings) -> str:
     """
     Return #define VALIDATE_JSON if validate_json: True specified.
