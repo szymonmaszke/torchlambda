@@ -2,6 +2,7 @@
 # https://github.com/szymonmaszke/torchlambda/wiki/YAML-settings-file-reference
 ---
 grad: false
+optimize: false
 validate_json: true
 model: /opt/model.ptc
 input:
