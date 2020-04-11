@@ -45,9 +45,9 @@ def create_data(
             [3],
         ]
         if is_base64:
-            sizes.extend([[256, 128, 512], [256, 128, 512]])
+            sizes.extend([[256, 512], [256, 512, 1024]])
         else:
-            sizes.extend([[128, 64], [64, 128]])
+            sizes.extend([[128, 64], [128, 64]])
 
         for size, dimension in zip(sizes, settings["input"]["shape"]):
             if isinstance(dimension, str):
