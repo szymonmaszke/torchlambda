@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 
-set -e
+set -e # Crash if anything returns non-zero code
+
+TORCH_VERSION=${1:-"latest"}
+TIME_IN_SECONDS=${2:-7200}
 
 # Global test run settings
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-
-TIME_IN_SECONDS=1800
-TORCH_VERSION=${1:-"latest"}
 
 IMAGE="szymonmaszke/torchlambda:$TORCH_VERSION"
 SETTINGS="$DIR/settings.yaml"
@@ -35,7 +35,7 @@ while [ $(($(date +%s) - "$TIME_IN_SECONDS")) -lt "$START" ]; do
 
   # # Build code template into deployment package
   echo "Test $i :: Building source code"
-  torchlambda --silent build "$TEST_CPP_SOURCE_FOLDER" --destination "$TEST_PACKAGE" --image "$IMAGE"
+  torchlambda build "$TEST_CPP_SOURCE_FOLDER" --destination "$TEST_PACKAGE" --image "$IMAGE"
   unzip -qq "$TEST_PACKAGE" -d "$TEST_CODE"
 
   # # Create example model
@@ -47,23 +47,20 @@ while [ $(($(date +%s) - "$TIME_IN_SECONDS")) -lt "$START" ]; do
   echo "Test $i :: Payload size:"
   du -sh "$PAYLOAD"
 
-  echo "Test $i :: Setting up server:"
-  # container_id=$(docker run --rm -d -e DOCKER_LAMBDA_STAY_OPEN=1 -p 9001:9001 -v \
-  #   "$TEST_CODE":/var/task:ro,delegated -v \
-  #   "$MODEL":/opt/model.ptc:ro,delegated lambci/lambda:provided \
-  #   torchlambda)
+  echo "Test $i :: Setting up server"
 
-  timeout 120 docker run --rm -v \
+  timeout 30 docker run --rm -v \
     "$TEST_CODE":/var/task:ro,delegated -v \
     "$MODEL":/opt/model.ptc:ro,delegated \
     -i -e DOCKER_LAMBDA_USE_STDIN=1 \
     lambci/lambda:provided \
     torchlambda <"$PAYLOAD" >"$RESPONSE"
 
-  echo "Validating received response:"
+  echo "Test $i :: Validating received response"
   SETTINGS="$SETTINGS" RESPONSE="$RESPONSE" python "$DIR"/src/validate.py
 
   # Clean up
+  echo "Test $i :: Cleaning up"
   rm -rf "$SETTINGS" "$TEST_CPP_SOURCE_FOLDER" "$TEST_PACKAGE" "$TEST_CODE" "$MODEL" "$PAYLOAD" "$RESPONSE"
   i=$((i + 1))
 done
