@@ -135,7 +135,7 @@ def inputs(settings) -> str:
     )
 
 
-def output_cast(settings) -> str:
+def aws_to_torch(settings, key: str) -> str:
     """
     Impute libtorch specific type from user provided "human-readable" form.
 
@@ -152,15 +152,49 @@ def output_cast(settings) -> str:
         String specifying type, e.g. "torch::kFloat16"
     """
     type_mapping = {
+        "bool": "torch::kInt8",
         "int": "torch::kInt32",
         "long": "torch::kInt64",
         "double": "torch::kFloat64",
     }
 
-    if settings["return"]["output"] is None:
+    if settings["return"][key] is None:
         return ""
 
-    return type_mapping[settings["return"]["output"]["type"].lower()]
+    return type_mapping[settings["return"][key]["type"].lower()]
+
+
+def torch_approximation(settings, key: str) -> str:
+    """
+    PyTorch has no `bool` type in libtorch hence we approximate one.
+
+    Each item will be later static_casted to appropriate type if needed,
+    which is essentially a no-op for for already correct types.
+
+    Usually only `bool` will be casted (eventually other "hard-types" if
+    the architecture is specific).
+
+    Parameters
+    ----------
+    settings : typing.Dict
+        YAML parsed to dict
+
+    Returns
+    -------
+    str:
+        String specifying type, e.g. "int8_t"
+    """
+    type_mapping = {
+        "bool": "int8_t",
+        "int": "int32_t",
+        "long": "int64_t",
+        "double": "double",
+    }
+
+    if settings["return"][key] is None:
+        return ""
+
+    return type_mapping[settings["return"][key]["type"].lower()]
 
 
 def operations_and_arguments(settings):
@@ -211,6 +245,9 @@ def operations_and_arguments(settings):
 
     if settings["return"]["result"] is None:
         return ""
+
+    if "code" in settings["return"]["result"]:
+        return settings["return"]["result"]["code"]
 
     operations = settings["return"]["result"]["operations"]
     arguments = settings["return"]["result"]["arguments"]

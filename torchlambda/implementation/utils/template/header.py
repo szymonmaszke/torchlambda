@@ -88,10 +88,10 @@ def base64(settings) -> str:
 
 def validate_field(settings) -> str:
     """
-    Return #define VALIDATE_FIELD if validate_field: True specified.
+    Return #define VALIDATE_FIELD if validate: True specified.
 
     If specified, data will be checked for correctness
-    (only whether `data` field exists).
+    (whether `data` field exists and whether it's type is string or array).
 
     If not, InvalidJson with appropriate text will be returned.
 
@@ -105,7 +105,7 @@ def validate_field(settings) -> str:
     str:
         Either "" or "#define VALIDATE_FIELD"
     """
-    return macro.conditional(settings["input"]["validate_field"], "VALIDATE_FIELD")
+    return macro.conditional(settings["input"]["validate"], "VALIDATE_FIELD")
 
 
 def validate_shape(settings) -> str:
@@ -178,9 +178,7 @@ def cast(settings) -> str:
         "double": "torch::kFloat64",
     }
 
-    return macro.conditional(
-        settings["input"]["cast"], "CAST", type_mapping[settings["cast"].lower()]
-    )
+    return macro.key(settings["input"], key="cast", mapping=type_mapping,)
 
 
 def divide(settings) -> str:
@@ -201,7 +199,7 @@ def divide(settings) -> str:
         string representation of number, e.g. "255.0"
 
     """
-    return macro.conditional(settings["input"]["divide"], "DIVIDE", settings["divide"])
+    return macro.key(settings["input"], key="divide")
 
 
 def return_output(settings):

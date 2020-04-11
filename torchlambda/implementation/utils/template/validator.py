@@ -133,7 +133,7 @@ def get():
                             },
                             "type": {
                                 "type": "string",
-                                "allowed": ["int", "long", "double"],
+                                "allowed": ["int", "long", "double", "bool"],
                                 "required": True,
                             },
                             "item": {"type": "boolean", "default": False},
@@ -148,7 +148,7 @@ def get():
                             "name": {"type": "string", "default": "result"},
                             "type": {
                                 "type": "string",
-                                "allowed": ["int", "long", "double"],
+                                "allowed": ["int", "long", "double", "bool"],
                                 "required": True,
                             },
                             "item": {"type": "boolean", "default": False},
