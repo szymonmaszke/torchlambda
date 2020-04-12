@@ -3,13 +3,18 @@
 set -e # Crash if anything returns non-zero code
 
 TORCH_VERSION=${1:-"latest"}
-TIME_IN_SECONDS=${2:-7200}
+FINAL_DATA=${2:-"local"}
+TIME_IN_SECONDS=${3:-600}
 
 # Global test run settings
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
+# Where performance analysis will be saved
+DATA="$DIR/data"
+mkdir -p "$DATA"
+
 IMAGE="szymonmaszke/torchlambda:$TORCH_VERSION"
-SETTINGS="$DIR/settings.yaml"
+SETTINGS="$DIR/settings"
 
 TEST_CPP_SOURCE_FOLDER="$DIR/test_cpp_source_folder"
 TEST_PACKAGE="$DIR/deployment.zip"
@@ -25,13 +30,13 @@ i=0
 
 while [ $(($(date +%s) - "$TIME_IN_SECONDS")) -lt "$START" ]; do
   # Insert test case specific values into settings
-  OUTPUT="$SETTINGS" python "$DIR"/src/setup.py
+  OUTPUT="$DATA/$i.yaml" python "$DIR"/src/setup.py
   echo "Test $i :: Tested settings:"
-  cat "$SETTINGS"
+  cat "$DATA/$i.yaml"
 
   # # Use test settings to create C++ code template
   echo "Test $i :: Creating source code from settings"
-  torchlambda template --yaml "$SETTINGS" --destination "$TEST_CPP_SOURCE_FOLDER"
+  torchlambda template --yaml "$DATA/$i.yaml" --destination "$TEST_CPP_SOURCE_FOLDER"
 
   # # Build code template into deployment package
   echo "Test $i :: Building source code"
@@ -39,11 +44,11 @@ while [ $(($(date +%s) - "$TIME_IN_SECONDS")) -lt "$START" ]; do
   unzip -qq "$TEST_PACKAGE" -d "$TEST_CODE"
 
   # # Create example model
-  MODEL="$MODEL" python "$DIR"/src/model.py
+  MODEL="$MODEL" SETTINGS="$DATA/$i.yaml" python "$DIR"/src/model.py
   echo "Test $i :: Model size:"
   du -sh "$MODEL"
 
-  SETTINGS="$SETTINGS" OUTPUT="$PAYLOAD" python "$DIR"/src/payload.py
+  SETTINGS="$DATA/$i.yaml" OUTPUT="$PAYLOAD" python "$DIR"/src/payload.py
   echo "Test $i :: Payload size:"
   du -sh "$PAYLOAD"
 
@@ -54,13 +59,22 @@ while [ $(($(date +%s) - "$TIME_IN_SECONDS")) -lt "$START" ]; do
     "$MODEL":/opt/model.ptc:ro,delegated \
     -i -e DOCKER_LAMBDA_USE_STDIN=1 \
     lambci/lambda:provided \
-    torchlambda <"$PAYLOAD" >"$RESPONSE"
+    torchlambda <"$PAYLOAD" >"$RESPONSE" 2>"temp"
+
+  # Remove colored output from lambci
+  sed 's/\x1b\[[0-9;]*m//g' "temp" | tail -n 1 >"temp2"
 
   echo "Test $i :: Validating received response"
-  SETTINGS="$SETTINGS" RESPONSE="$RESPONSE" python "$DIR"/src/validate.py
+  SETTINGS="$DATA/$i.yaml" RESPONSE="$RESPONSE" python "$DIR"/src/validate.py
+
+  echo "Test $i :: Adding time measurements"
+  SETTINGS="$DATA/$i.yaml" DATA="temp2" python "$DIR"/src/process.py
 
   # Clean up
   echo "Test $i :: Cleaning up"
-  rm -rf "$SETTINGS" "$TEST_CPP_SOURCE_FOLDER" "$TEST_PACKAGE" "$TEST_CODE" "$MODEL" "$PAYLOAD" "$RESPONSE"
+  rm -rf "temp" "temp2" "$TEST_CPP_SOURCE_FOLDER" "$TEST_PACKAGE" "$TEST_CODE" "$MODEL" "$PAYLOAD" "$RESPONSE"
   i=$((i + 1))
 done
+
+echo "Test :: Creating statistics: $FINAL_DATA"
+OUTPUT="$FINAL_DATA" DATA="$DATA" python "$DIR"/src/gather.py
