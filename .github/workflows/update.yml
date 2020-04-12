@@ -35,9 +35,7 @@ jobs:
       - name: Build docker image locally
         run: ./scripts/ci/build.sh ${{ matrix.pytorch }}
       - name: Perform tests
-        env:
-          AWS_DEFAULT_REGION: us-east-1
-        run: ./tests/run.sh ${{ matrix.pytorch }}
+        run: ./tests/settings/automated/run.sh ${{ matrix.pytorch }} ${{ matrix.os }}-py${{ matrix.python }}-torch${{ matrix.pytorch }} 7200
 
   docker:
     needs: tests
