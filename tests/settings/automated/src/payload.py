@@ -7,6 +7,7 @@ import struct
 import typing
 
 import numpy as np
+import yaml
 
 import utils
 
@@ -45,7 +46,7 @@ def create_data(
             [3],
         ]
         if is_base64:
-            sizes.extend([[256, 512], [256, 512, 1024]])
+            sizes.extend([[256, 512], [256, 512]])
         else:
             sizes.extend([[128, 64], [128, 64]])
 
@@ -56,6 +57,7 @@ def create_data(
                 yield dimension
 
     batch, channels, width, height = _get_shape(settings)
+    settings["payload"] = [batch, channels, width, height]
     print(
         "Test:: Request shape: [{}, {}, {}, {}]".format(batch, channels, width, height)
     )
@@ -68,6 +70,8 @@ def create_data(
         ).decode()
     else:
         data = data.astype(type_mapping[settings["input"]["type"]]).tolist()
+    with open(os.environ["SETTINGS"], "w") as file:
+        yaml.dump(settings, file, default_flow_style=False)
     return data, (batch, channels, width, height)
 
 

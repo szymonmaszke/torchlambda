@@ -3,6 +3,7 @@ import random
 
 import torch
 import torchvision
+import yaml
 
 import utils
 
@@ -16,13 +17,17 @@ def create_model():
         "mnasnet1_3",
     ]
 
+    settings = utils.load_settings()
     model_name = random.choice(possible_models)
     print("Test:: Model: {}".format(model_name))
     model = getattr(torchvision.models, model_name)()
 
     script_model = torch.jit.script(model)
-
     script_model.save(os.environ["MODEL"])
+
+    settings["model_name"] = model_name
+    with open(os.environ["SETTINGS"], "w") as file:
+        yaml.dump(settings, file, default_flow_style=False)
 
 
 if __name__ == "__main__":
