@@ -22,7 +22,7 @@ RESPONSE="output.json"
 PAYLOAD="payload.json"
 
 # Run for each test case
-FINAL_DATA="local"
+FINAL_DATA="analysis"
 
 SECS=7200
 ENDTIME=$(($(date +%s) + SECS))

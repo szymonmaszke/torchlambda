@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: ${{ matrix.os }}-py${{ matrix.python }}-torch${{ matrix.pytorch }}.npz
-          path: ./tests/settings/automated/local.npz
+          path: analysis.npz
 
   docker:
     needs: tests
