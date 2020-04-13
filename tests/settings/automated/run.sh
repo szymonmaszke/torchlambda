@@ -3,8 +3,8 @@
 set -e # Crash if anything returns non-zero code
 
 TORCH_VERSION=${1:-"latest"}
-FINAL_DATA=${2:-"local"}
-TIME_IN_SECONDS=${3:-600}
+TIME_IN_SECONDS=${2:-600}
+FINAL_DATA=${3:-"local"}
 
 # Global test run settings
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
