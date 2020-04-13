@@ -35,7 +35,12 @@ jobs:
       - name: Build docker image locally
         run: ./scripts/ci/build.sh ${{ matrix.pytorch }}
       - name: Perform tests
-        run: ./tests/settings/automated/run.sh ${{ matrix.pytorch }} ${{ matrix.os }}-py${{ matrix.python }}-torch${{ matrix.pytorch }} 7200
+        run: ./tests/settings/automated/run.sh ${{ matrix.pytorch }} 7200
+      - name: Upload test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.os }}-py${{ matrix.python }}-torch${{ matrix.pytorch }}.npz
+          path: ./tests/settings/automated/local.npz
 
   docker:
     needs: tests
