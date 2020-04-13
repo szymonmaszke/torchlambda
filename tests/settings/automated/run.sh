@@ -3,8 +3,6 @@
 set -e # Crash if anything returns non-zero code
 
 TORCH_VERSION=${1:-"latest"}
-TIME_IN_SECONDS=${2:-7200}
-FINAL_DATA=${3:-"local"}
 
 # Global test run settings
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -24,10 +22,13 @@ RESPONSE="output.json"
 PAYLOAD="payload.json"
 
 # Run for each test case
-START=$(date +%s)
-i=0
+FINAL_DATA="local"
 
-while [ $(($(date +%s) - "$TIME_IN_SECONDS")) -lt "$START" ]; do
+SECS=7200
+ENDTIME=$(($(date +%s) + SECS))
+START=$(date +%s)
+
+while [ $(date +%s) -lt $ENDTIME ]; do
   # Insert test case specific values into settings
   OUTPUT="$DATA/$i.yaml" python "$DIR"/src/setup.py
   echo "Test $i :: Tested settings:"
