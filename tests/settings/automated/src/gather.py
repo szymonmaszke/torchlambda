@@ -48,8 +48,15 @@ def gather():
             (64, 128): 6,
             (128, 128): 7,
         },
+        "model_name": {
+            "shufflenet_v2_x1_0": 0,
+            "resnet18": 1,
+            "mobilenet_v2": 2,
+            "mnasnet1_0": 3,
+            "mnasnet1_3": 4,
+        }
         # normalize: None, Smth
-        # output, result, output+result,
+        # return: output, result, output+result,
         # duration, init, billed
     }
 
@@ -64,7 +71,7 @@ def gather():
             return 2
 
         def _normalize():
-            return result["normalize"] is None
+            return 0 if result["normalize"] is None else 1
 
         if key == "return":
             return _return()
@@ -78,23 +85,25 @@ def gather():
             return mapping[key][(width, height)]
         return mapping[key][result[key]]
 
-    data = np.zeros([len(value) for value in mapping.values()] + [3, 3])
+    # + normalize, return, duration
+    data = np.zeros([len(value) for value in mapping.values()] + [2, 3, 3])
     occurrences = np.zeros_like(data).astype(int)
     for file in pathlib.Path(os.environ["DATA"]).iterdir():
         result = load(file)
-        grad, types, payload, normalize, output = [
+        grad, types, payload, model_name, normalize, output = [
             index("grad", result),
             index("type", result, True),
             index("payload", result),
+            index("model_name", result),
             index("normalize", result),
             index("return", result),
         ]
-        data[grad, types, payload, normalize, output, ...] = [
+        data[grad, types, payload, model_name, normalize, output, ...] = [
             result["init"],
             result["duration"],
             result["billed"],
         ]
-        occurrences[grad, types, payload, normalize, output, ...] += 1
+        occurrences[grad, types, payload, model_name, normalize, output, ...] += 1
 
     np.savez(os.environ["OUTPUT"], data=data, occurrences=occurrences)
 
