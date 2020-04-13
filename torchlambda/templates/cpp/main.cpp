@@ -90,7 +90,11 @@ int main() {
    *
    */
 
+  /* Turn off gradient */
   torch::NoGradGuard no_grad_guard{};
+  /* No optimization during first pass as it might slow down inference by 30s */
+  torch::jit::setGraphExecutorOptimize(false);
+
   constexpr auto model_path = "/opt/model.ptc";
 
   torch::jit::script::Module module = torch::jit::load(model_path, torch::kCPU);
