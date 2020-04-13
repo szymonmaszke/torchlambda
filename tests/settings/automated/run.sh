@@ -1,9 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -e # Crash if anything returns non-zero code
 
 TORCH_VERSION=${1:-"latest"}
-TIME_IN_SECONDS=${2:-600}
+TIME_IN_SECONDS=${2:-7200}
 FINAL_DATA=${3:-"local"}
 
 # Global test run settings
@@ -14,7 +14,6 @@ DATA="$DIR/data"
 mkdir -p "$DATA"
 
 IMAGE="szymonmaszke/torchlambda:$TORCH_VERSION"
-SETTINGS="$DIR/settings"
 
 TEST_CPP_SOURCE_FOLDER="$DIR/test_cpp_source_folder"
 TEST_PACKAGE="$DIR/deployment.zip"
