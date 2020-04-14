@@ -34,7 +34,7 @@ def post_process(settings: typing.Dict) -> typing.Dict:
         def _randomly_nullify_field(field, key):
             choice = random.choice([True, False])
             if choice:
-                field[key] = None
+                field.pop(key)
             return choice
 
         # cast cannot be nullified as model hangs on other input than float
@@ -61,11 +61,7 @@ def create_settings() -> None:
                 ["base64", "byte", "char", "short", "int", "long", "float", "double"]
             ),
             "shape": OptionGenerator(
-                [
-                    [1, 3, 64, 64],
-                    ["batch", "channels", "width", "height"],
-                    [1, 3, "width", "height"],
-                ]
+                [["batch", "channels", "width", "height"], [1, 3, "width", "height"]]
             ),
             "validate_shape": OptionGenerator([True, False]),
             # cast cannot be different as model hangs on different input than float

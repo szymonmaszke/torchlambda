@@ -1,7 +1,9 @@
+import collections
 import os
 import pathlib
 import re
 import sys
+import typing
 
 import numpy as np
 import yaml
@@ -38,16 +40,7 @@ def gather():
             "float": 6,
             "double": 7,
         },
-        "payload": {
-            (256, 256): 0,
-            (256, 512): 1,
-            (512, 256): 2,
-            (512, 512): 3,
-            (64, 64): 4,
-            (128, 64): 5,
-            (64, 128): 6,
-            (128, 128): 7,
-        },
+        "payload": {(128, 128): 0, (256, 256): 1, (512, 512): 2, (1024, 1024): 3},
         "model_name": {
             "shufflenet_v2_x1_0": 0,
             "resnet18": 1,

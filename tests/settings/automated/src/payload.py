@@ -40,21 +40,9 @@ def create_data(
     },
 ):
     def _get_shape(settings):
-        is_base64 = settings["input"]["type"] == "base64"
-        sizes = [
-            [1],
-            [3],
-        ]
-        if is_base64:
-            sizes.extend([[256, 512], [256, 512]])
-        else:
-            sizes.extend([[128, 64], [128, 64]])
-
-        for size, dimension in zip(sizes, settings["input"]["shape"]):
-            if isinstance(dimension, str):
-                yield random.choice(size)
-            else:
-                yield dimension
+        return [1, 3] + random.choice(
+            [[128, 128], [256, 256], [512, 512], [1024, 1024]]
+        )
 
     batch, channels, width, height = _get_shape(settings)
     settings["payload"] = [batch, channels, width, height]
