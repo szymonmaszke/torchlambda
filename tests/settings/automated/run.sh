@@ -78,3 +78,4 @@ done
 
 echo "Test :: Creating statistics: $FINAL_DATA"
 OUTPUT="$FINAL_DATA" DATA="$DATA" python "$DIR"/src/gather.py
+rm -rf "$DATA"
