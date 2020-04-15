@@ -77,7 +77,8 @@ def get_results(trials, occurrences, rows, columns, duration):
             ),
         )[:, :, duration_mapping(duration)]
 
-    return _reduce(trials) / _reduce(occurrences)
+    all_tests = _reduce(occurrences)
+    return np.sum(all_tests), _reduce(trials) / all_tests
 
 
 def header() -> str:
@@ -96,7 +97,7 @@ if __name__ == "__main__":
         times, itertools.combinations(fields, 2)
     ):
 
-        result_matrix = get_results(trials, occurrences, row, column, time)
+        _, result_matrix = get_results(trials, occurrences, row, column, time)
         df = pd.DataFrame(
             data=result_matrix,
             index=axis_description(row),
@@ -106,8 +107,9 @@ if __name__ == "__main__":
             markdown += "\n\n## {}: {} x {}\n\n".format(time, row, column)
             markdown += df.to_markdown()
 
-    markdown += "\n\n _This file was auto-generated on {}_".format(
-        datetime.today().strftime("%Y-%m-%d-%H:%M:%S")
+    all_tests, _ = get_results(trials, occurrences, row, column, time)
+    markdown += "\n\n _This file was auto-generated on {} based on {} tests_".format(
+        datetime.today().strftime("%Y-%m-%d-%H:%M:%S"), all_tests
     )
 
     with open(args.output, "w") as f:
