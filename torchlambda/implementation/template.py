@@ -156,7 +156,7 @@ def create_source(settings: typing.Dict) -> str:
         Source represented as string
     """
     cwd = pathlib.Path(__file__).absolute().parent.parent
-    with open(cwd / "templates/yaml/main.cpp") as file:
+    with open(cwd / "templates/settings/main.cpp") as file:
         return file.read().format(
             # Top level defines
             STATIC=utils.template.header.static(settings),

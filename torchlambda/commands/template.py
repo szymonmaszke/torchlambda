@@ -10,7 +10,7 @@ def run(args):
     ):
         if args.yaml is None:
             implementation.general.run(
-                "cp -r ./templates/cpp {}".format(
+                "cp -r ./templates/custom {}".format(
                     pathlib.Path(args.destination).absolute()
                 ),
                 operation="copying CPP sources",

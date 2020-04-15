@@ -10,7 +10,7 @@ def run(args):
         "creating YAML settings at {}.".format(destination)
     ):
         implementation.general.run(
-            "cp -r ./templates/yaml/settings.yaml {}".format(destination),
+            "cp -r ./templates/settings/torchlambda.yaml {}".format(destination),
             operation="copying YAML source code",
             silent=args.silent,
         )
