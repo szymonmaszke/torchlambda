@@ -50,17 +50,8 @@ def sum_of_trials(args):
 def axis_description(name: str):
     mapping = {
         "grad": [True, False],
-        "type": ["base64", "byte", "char", "short", "int", "long", "float", "double",],
-        "payload": [
-            "256x256",
-            "256x512",
-            "512x256",
-            "512x512",
-            "64x64",
-            "128x64",
-            "64x128",
-            "128x128",
-        ],
+        "type": ["base64", "byte", "char", "short", "int", "long", "float", "double"],
+        "payload": ["128x128", "256x256", "512x512", "1024x1024"],
         "model_name": [
             "shufflenet_v2_x1_0",
             "resnet18",
@@ -104,7 +95,6 @@ if __name__ == "__main__":
     for time, (row, column) in itertools.product(
         times, itertools.combinations(fields, 2)
     ):
-        markdown += "\n\n## {}: {} x {}\n\n".format(time, row, column)
 
         result_matrix = get_results(trials, occurrences, row, column, time)
         df = pd.DataFrame(
@@ -112,8 +102,9 @@ if __name__ == "__main__":
             index=axis_description(row),
             columns=axis_description(column),
         )
-
-        markdown += df.to_markdown()
+        if not df.isnull().any().any():
+            markdown += "\n\n## {}: {} x {}\n\n".format(time, row, column)
+            markdown += df.to_markdown()
 
     markdown += "\n\n _This file was auto-generated on {}_".format(
         datetime.today().strftime("%Y-%m-%d-%H:%M:%S")
