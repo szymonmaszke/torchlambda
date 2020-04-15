@@ -24,9 +24,7 @@ RUN cd dependencies && \
 FROM amazonlinux:latest
 COPY --from=builder /usr/local /usr/local
 
-RUN yum -y install libcurl-devel libuuid-devel openssl-devel gcc-c++ make cmake3 zip && \
-      ln -s /usr/bin/ninja-build /usr/bin/ninja
-
+RUN yum -y install libcurl-devel libuuid-devel openssl-devel gcc-c++ make cmake3 zip
 
 LABEL maintainer="szymon.maszke@protonmail.com"
 
