@@ -1,12 +1,23 @@
 import importlib
 
-from . import arguments, commands
+from . import arguments, subcommands
 from ._version import __version__
 
 
-def main():
+def main() -> None:
+    """Entrypoint run after torchlambda command.
+
+    Responsibilities for functionalities are fully transferred to specific
+    subcommand.
+
+    See subcommands module for details.
+
+    """
+
     args = arguments.parser.get()
-    module = importlib.import_module(".commands." + args.command, package=__package__)
+    module = importlib.import_module(
+        ".subcommands." + args.subcommand, package=__package__
+    )
     module.run(args)
 
 

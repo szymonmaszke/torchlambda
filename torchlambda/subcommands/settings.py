@@ -4,7 +4,7 @@ from .. import implementation
 
 
 def run(args):
-    """Entrypoint for `torchlambda settings` command"""
+    """Entrypoint for `torchlambda settings` subcommand"""
     destination = pathlib.Path(args.destination).absolute()
     with implementation.general.message(
         "creating YAML settings at {}.".format(destination)

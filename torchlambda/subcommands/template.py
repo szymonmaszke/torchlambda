@@ -4,7 +4,7 @@ from .. import implementation
 
 
 def run(args):
-    """Entrypoint for `torchlambda template` command"""
+    """Entrypoint for `torchlambda template` subcommand"""
     with implementation.general.message(
         "creating C++ scheme at {}.".format(args.destination)
     ):

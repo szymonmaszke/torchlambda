@@ -2,7 +2,7 @@ from .. import implementation
 
 
 def run(args):
-    """Entrypoint for `torchlambda build` command"""
+    """Entrypoint for `torchlambda build` subcommand"""
     implementation.docker.check()
 
     with implementation.general.message("deployment."):

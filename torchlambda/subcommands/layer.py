@@ -5,7 +5,7 @@ from .. import implementation
 
 
 def run(args):
-    """Entrypoint for `torchlambda layer` command"""
+    """Entrypoint for `torchlambda layer` subcommand"""
     destination = pathlib.Path(args.destination).absolute()
     with implementation.general.message(
         "packing Torchscript model to {}.".format(destination)

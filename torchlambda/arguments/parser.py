@@ -15,7 +15,7 @@ def get():
         "Default: False",
     )
 
-    subparsers = parser.add_subparsers(help="Available options:", dest="command")
+    subparsers = parser.add_subparsers(help="Subcommands:", dest="subcommand")
     settings(subparsers)
     template(subparsers)
     build(subparsers)
