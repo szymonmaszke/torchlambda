@@ -20,21 +20,21 @@ every day.
 
 # Comparison with other deployment tools
 
-__Improve this comparison's reliability via [Pull Request](https://github.com/szymonmaszke/torchlambda/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc), thanks.
-Also show guys below some love by visiting their projects (just click on the name).__
-
-Trait / Tool | torchlambda | [fastai Lambda](https://course.fast.ai/deployment_aws_lambda.html) | [KubeFlow](https://www.kubeflow.org/) | [Tensorflow Serving](https://github.com/tensorflow/serving) |
-|------------|-------------|--------------------------------------------------------------------|------------------|--------------------|
-__Autoscaling__ |:heavy_check_mark: | :heavy_check_mark: | with [Kubernetes](https://kubernetes.io/) | with [Kubernetes](https://kubernetes.io/) |
-__Light/Heavy load__ | Light  | Light | Heavy/Both | Both |
-__GPU Support__ | :x: | :x: | :heavy_check_mark: | :heavy_check_mark: |
-__Serverless__ |:heavy_check_mark: | :heavy_check_mark: | :x: | :x: |
-__Required services__ | AWS Lambda | AWS Lambda, AWS S3 | Kubernetes Cluster & cloud provider | Deployable in various settings |
-__Multiple frameworks__ | :x:  | :x: | :heavy_check_mark: | :x: |
-__Latest framework__ <sup>[1](#footnote1)</sup> | :heavy_check_mark: | :x: | :x: | :heavy_check_mark: |
-__Version (higher more mature)__ | [CD](https://en.wikipedia.org/wiki/Continuous_deployment) | N/A | [1.0](https://github.com/kubeflow/kubeflow/releases/tag/v1.0) | [2.1.0](https://github.com/tensorflow/serving/releases/tag/2.1.0) |
-__Customizable dependencies__ <sup>[2](#footnote2)</sup> | :heavy_check_mark: | :x: | :x: | :x: |
-__Deployment size__ <sup>[3](#footnote3)</sup>| ~30Mb| +1Gb | N/A | ~67Mb<sup>[4](#footnote4)</sup> |
+- __Do one thing and do it well__ - most deployment tools are complex solutions
+including multiple frameworks and multiple services. `torchlambda` focuses
+solely on PyTorch and AWS Lambda integration.
+- __Write programs to work together__ - Amazon AWS tools exist for a reason,
+no need to repeat their functionalities (like `aws-cli`) or interfere with
+your PyTorch source code.
+- __Small is beautiful__ - `3000` LOC where most of it are Python argument parsing
+from user makes it relatively easy to delve into source code and modify on your own.
+- __Focus on lightweight inference__ - you can't train you neural network with
+`torchlambda`. There are other tools for that and should be used when appropriate.
+- __Easy to jump in__ - no need to learn new tool. `torchlambda` has at most
+`4` commands simplifying steps to take PyTorch model into the cloud.
+- __Extensible when you need it__ - No additional source code needed (except YAML settings),
+but fully possible if you need it. You can also tune PyTorch and AWS SDK dependencies
+for your specific use-case
 
 # Table Of Contents
 
