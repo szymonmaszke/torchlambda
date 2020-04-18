@@ -23,32 +23,31 @@ every day.
 - __Do one thing and do it well__ - most deployment tools are complex solutions
 including multiple frameworks and multiple services. `torchlambda` focuses
 solely on PyTorch and AWS Lambda integration.
-- __Write programs to work together__ - Amazon AWS tools exist for a reason,
-no need to repeat their functionalities (like `aws-cli`) or interfere with
-your PyTorch source code.
-- __Small is beautiful__ - `3000` LOC where most of it are Python argument parsing
-from user makes it relatively easy to delve into source code and modify on your own.
-- __Focus on lightweight inference__ - you can't train you neural network with
-`torchlambda`. There are other tools for that and should be used when appropriate.
+- __Write programs to work together__ - Amazon AWS & PyTorch exist for a reason,
+no need to repeat their functionalities (like `aws-cli`). No source code modifications
+of your neural networks required either.
+- __Small is beautiful__ - `3000` LOC (most being convenience wrapper creating this tool)
+make it easy to delve into source code and modify what you want on your own.
+- __Integration with other tools__ - as `torchlambda` focuses on narrow space you can
+use any tools you like with PyTorch (e.g. for training you can use [KubeFlow](https://github.com/kubeflow/kubeflow) or [BentoML](https://github.com/bentoml/BentoML)) and AWS (for example [Terraform](https://www.terraform.io/)).
 - __Easy to jump in__ - no need to learn new tool. `torchlambda` has at most
-`4` commands simplifying steps to take PyTorch model into the cloud.
-- __Extensible when you need it__ - No additional source code needed (except YAML settings),
-but fully possible if you need it. You can also tune PyTorch and AWS SDK dependencies
-for your specific use-case
+`4` commands simplifying steps to take PyTorch model into the cloud which are mostly repetitive and possible
+to automate further.
+- __Extensible when you need it__ - All you usually need are a few lines of YAML settings, but if you wish to fine-tune your deployment you can use `torchlambda build` `--flags` (changing various properties of PyTorch and AWS dependencies).
+
 
 # Table Of Contents
 
 - [Installation](https://github.com/szymonmaszke/torchlambda/wiki/Installation)
 - [Tutorials](https://github.com/szymonmaszke/torchlambda/wiki/Tutorials)
-	- [Basic deployment on AWS Lambda]()
-	- [`base64` image encoding]()
-	- [Testing your function locally]()
+	- [ResNet18 deployment on AWS Lambda](https://github.com/szymonmaszke/torchlambda/wiki/ResNet18-deployment-on-AWS-Lambda)
+	- [Test Lambda deployment locally](https://github.com/szymonmaszke/torchlambda/wiki/Test-Lambda-deployment-locally)
+	- [`base64` image encoding](https://github.com/szymonmaszke/torchlambda/wiki/base64-image-encoding)
 - [Commands](https://github.com/szymonmaszke/torchlambda/wiki/Commands)
 	- [settings](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-settings)
 	- [template](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-template)
 	- [build](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-build)
 	- [layer](https://github.com/szymonmaszke/torchlambda/wiki/Commands#torchlambda-layer)
-
 - [YAML settings file reference](https://github.com/szymonmaszke/torchlambda/wiki/YAML-settings-file-reference)
 - [C++ code](https://github.com/szymonmaszke/torchlambda/wiki/CPP---code)
 
