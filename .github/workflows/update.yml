@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         pytorch:
+          - "v1.5.0"
           - "v1.4.0"
           - "latest"
         python:
@@ -50,6 +51,7 @@ jobs:
     strategy:
       matrix:
         pytorch:
+          - "v1.5.0"
           - "v1.4.0"
           - "latest"
     steps:
