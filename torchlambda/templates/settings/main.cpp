@@ -148,8 +148,7 @@ handler(std::shared_ptr<torch::jit::script::Module> &module,
     auto *data_pointer = data.data();
     const std::size_t data_length = nested_json.GetLength();
 #endif
-
-    torch::Tensor tensor =
+    const torch::Tensor tensor =
 #ifdef NORMALIZE
         torch::data::transforms::Normalize<>{{
           {{{NORMALIZE_MEANS}}}, {{{NORMALIZE_STDDEVS}}}
@@ -182,7 +181,7 @@ handler(std::shared_ptr<torch::jit::script::Module> &module,
 
     /* Support for multi-output/multi-input? */
 
-    auto output = module->forward({{tensor}})
+    const auto output = module->forward({{tensor}})
                       .toTensor()
 #ifdef RETURN_OUTPUT
                       .toType({OUTPUT_CAST})
@@ -191,7 +190,7 @@ handler(std::shared_ptr<torch::jit::script::Module> &module,
 
     /* Perform operation to create result */
 #if defined(RETURN_RESULT) || defined(RETURN_RESULT_ITEM)
-    auto result = ({OPERATIONS_AND_ARGUMENTS}).toType({RESULT_CAST});
+    const auto result = ({OPERATIONS_AND_ARGUMENTS}).toType({RESULT_CAST});
 #endif
 
     /* If array of outputs to be returned gather values as JSON */
