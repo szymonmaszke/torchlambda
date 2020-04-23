@@ -54,7 +54,7 @@ while [ $(date +%s) -lt $ENDTIME ]; do
 
   echo "Test $i :: Setting up server"
 
-  timeout 30 docker run --rm -v \
+  docker run --rm -v \
     "$TEST_CODE":/var/task:ro,delegated -v \
     "$MODEL":/opt/model.ptc:ro,delegated \
     -i -e DOCKER_LAMBDA_USE_STDIN=1 \
