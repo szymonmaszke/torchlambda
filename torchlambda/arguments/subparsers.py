@@ -2,12 +2,16 @@ import argparse
 
 
 def settings(subparsers) -> None:
-    """Create YAML settings to use with `torchlambda scheme --yaml`."""
+    """Create YAML settings to use with `torchlambda template --yaml`."""
+
+    description = "Create YAML settings to use with `torchlambda template --yaml`\n"
+    "This is the easiest way to deploy model, just modify default settings provided by this comand.\n"
+    "Not all provided fields are required, please see: https://github.com/szymonmaszke/torchlambda/wiki/Commands for more information."
+
     parser = subparsers.add_parser(
         "settings",
-        help="Create YAML settings to use with `torchlambda scheme --yaml`.\n"
-        "This is the easiest way to deploy model, just modify default settings provided by this comand.\n"
-        "All unspecified fields will have default values just like those settings.\n",
+        description=description,
+        help=description,
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -21,10 +25,18 @@ def settings(subparsers) -> None:
 
 def template(subparsers) -> None:
     """Create C++ source code template used for model inference."""
+
+    description = (
+        "Create C++ deployment code scheme with AWS Lambda C++ SDK and PyTorch.\n"
+        "In general users are advised to stick to YAML settings (--yaml) flag.\n"
+        "Not all YAML fields are required, please see: https://github.com/szymonmaszke/torchlambda/wiki/Commands for more information.\n"
+        "If --yaml unspecified, generate C++ code which one can use as a starting point for custom use cases."
+    )
+
     parser = subparsers.add_parser(
         "template",
-        help="Create C++ deployment code scheme with AWS Lambda C++ SDK and PyTorch.\n"
-        "See generated code comments and change a few lines to fit your use case.",
+        description=description,
+        help=description,
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -32,7 +44,7 @@ def template(subparsers) -> None:
         "--yaml",
         required=False,
         default=None,
-        help="Path to YAML containing settings to generate code scheme.\n"
+        help="Path to YAML settings file from which code will be generated.\n"
         "See torchlambda settings and comments in generated YAML for more info.",
     )
 
@@ -40,20 +52,22 @@ def template(subparsers) -> None:
         "--destination",
         required=False,
         default="./torchlambda",
-        help="""Path to folder where C++ deployment files will be located. Default: "./torchlambda" """,
+        help="""Path to folder where C++ deployment files will be created. Default: "./torchlambda" """,
     )
 
 
 def build(subparsers) -> None:
     """Perform deployment of PyTorch C++ code to AWS Lambda."""
+    description = "Obtain AWS Lambda ready .zip package from C++ deployment source code and Torchscript compiled model.\n"
+    "See following resources for more information:\n"
+    "- Torchscript documentation: https://pytorch.org/docs/stable/jit.html\n"
+    "- AWS Lambda Getting Started: https://aws.amazon.com/lambda/getting-started/\n"
+    "- AWS SDK for C++: https://aws.amazon.com/sdk-for-cpp/"
     parser = subparsers.add_parser(
         "build",
-        help="Obtain AWS Lambda ready .zip package from C++ deployment source code and Torchscript compiled model.\n"
-        "See following resources for more information:\n"
-        "- Torchscript documentation: https://pytorch.org/docs/stable/jit.html\n"
-        "- AWS Lambda Getting Started: https://aws.amazon.com/lambda/getting-started/\n"
-        "- AWS SDK for C++: https://aws.amazon.com/sdk-for-cpp/",
         formatter_class=argparse.RawTextHelpFormatter,
+        description=description,
+        help=description,
     )
 
     parser.add_argument(
@@ -210,9 +224,11 @@ def build(subparsers) -> None:
 
 def layer(subparsers) -> None:
     """Pack model as .zip file ready to deploy on AWS Lambda as layer."""
+    description = "Pack model as .zip file ready to deploy on AWS Lambda as layer."
     parser = subparsers.add_parser(
         "layer",
-        help="Pack model as .zip file ready to deploy on AWS Lambda as layer.",
+        description=description,
+        help=description,
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
