@@ -1,6 +1,6 @@
 <img align="left" width="256" height="256" src="https://github.com/szymonmaszke/torchlambda/blob/master/assets/banner.png">
 
-[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) is a tool to deploy [PyTorch](https://pytorch.org/) models
+[__torchlambda__](https://github.com/szymonmaszke/torchlambda/wiki) is a tool to deploy [PyTorch](https://pytorch.org/) models
 on [Amazon's AWS Lambda](https://aws.amazon.com/lambda/) using [AWS SDK for C++](https://aws.amazon.com/sdk-for-cpp/)
 and [custom C++ runtime](https://github.com/awslabs/aws-lambda-cpp).
 
@@ -9,7 +9,7 @@ Using statically compiled dependencies __whole package is shrunk to only `30MB`_
 Due to small size of compiled source code users can pass their models as [AWS Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html).
 __Services like [Amazon S3](https://aws.amazon.com/s3/) are no longer necessary to load your model__.
 
-[__torchlambda__](https://szymonmaszke.github.io/torchlambda/) has it's PyTorch & AWS dependencies always up to date because of [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) run at `03:00 a.m.`
+[__torchlambda__](https://github.com/szymonmaszke/torchlambda/wiki) has it's PyTorch & AWS dependencies always up to date because of [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) run at `03:00 a.m.`
 every day.
 
 
