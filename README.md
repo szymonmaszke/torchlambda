@@ -26,9 +26,9 @@ every day.
 including multiple frameworks and multiple services. `torchlambda` focuses
 solely on inference of PyTorch models on AWS Lambda.
 - __Write programs to work together__ - Amazon AWS & PyTorch exist for a reason,
-no need to repeat their functionalities (like `aws-cli`). You can also use your favorite third party tools (say [saws](https://github.com/donnemartin/saws), [Terraform](https://www.terraform.io/) with AWS and [KubeFlow](https://github.com/kubeflow/kubeflow), [PyTorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning) with PyTorch)
+no need to repeat their functionalities (like `aws-cli`). You can also use your favorite third party tools (say [saws](https://github.com/donnemartin/saws), [Terraform](https://www.terraform.io/) with AWS and [KubeFlow](https://github.com/kubeflow/kubeflow), [PyTorch-Lightning](https://github.com/PyTorchLightning/pytorch-lightning) with PyTorch).
 - __Test locally, run in the cloud__ - `torchlambda` uses [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/) Docker [images](https://hub.docker.com/_/amazonlinux) under the hood & allows you to use [lambci/docker-lambda](https://github.com/lambci/docker-lambda) to test your deployment on `localhost` before pushing deployment to the cloud (see [Test Lambda deployment locally](https://github.com/szymonmaszke/torchlambda/wiki/Test-Lambda-deployment-locally) tutorial).
-- __Extensible when you need it__ - All you usually need are a few lines of YAML settings, but if you wish to fine-tune your deployment you can use `torchlambda build` `--flags` (changing various properties of PyTorch and AWS dependencies themselves). You can also write your own C++ deployment code (generate template via `torchlambda template` command)
+- __Extensible when you need it__ - All you usually need are a few lines of YAML settings, but if you wish to fine-tune your deployment you can use `torchlambda build` `--flags` (changing various properties of PyTorch and AWS dependencies themselves). You can also write your own C++ deployment code (generate template via `torchlambda template` command).
 - __Small is beautiful__ - `3000` LOC (most being convenience wrapper creating this tool)
 make it easy to jump into source code and check what's going on under the hood.
 
