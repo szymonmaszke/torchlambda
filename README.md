@@ -20,7 +20,7 @@ every day.
 
 # Why should I use `torchlambda`?
 
-- __Lightweight & latest dependencies__ - compiled source code weights only `30MB`. Previous approach to PyTorch network deployment on AWS Lambda ([fastai](https://course.fast.ai/deployment_aws_lambda.html)) uses outdated PyTorch (`1.1.0`) as dependency layer and requires AWS S3 to host your model. Now you can only use AWS Lambda and host your model as layer.
+- __Lightweight & latest dependencies__ - compiled source code weights only `30MB`. Previous approach to PyTorch network deployment on AWS Lambda ([fastai](https://course.fast.ai/deployment_aws_lambda.html)) uses outdated PyTorch (`1.1.0`) as dependency layer and requires AWS S3 to host your model. Now you can only use AWS Lambda and host your model as layer and PyTorch `master` and latest stable release are supported on a daily basis.
 - __Cheaper and less resource hungry__ - available solutions run server hosting incoming requests all the time. AWS Lambda (and torchlambda) runs only when the request comes. 
 - __Easy automated scaling__  usually autoscaling is done with [Kubernetes](https://kubernetes.io/) or similar tools (see [KubeFlow](https://www.kubeflow.org/docs/gke/deploy/)). This approach requires knowledge of another tool, setting up appropriate services (e.g. [Amazon EKS](https://aws.amazon.com/eks/)). In AWS Lambda case you just push your neural network inference code and you are done.
 - __Easy to use__ - no need to learn new tool. `torchlambda` has at most
