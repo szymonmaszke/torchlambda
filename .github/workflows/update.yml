@@ -2,7 +2,6 @@
 name: update
 on:
   push:
-  pull_request:
   schedule:
     - cron: '0 3 * * *'
 
@@ -44,7 +43,6 @@ jobs:
 
   docker:
     needs: tests
-    if: github.event_name == 'schedule'
     name: Deployment image szymonmaszke/torchlambda:${{ matrix.pytorch}}
     runs-on: ubuntu-latest
     strategy:
@@ -75,7 +73,6 @@ jobs:
 
   pip:
     needs: tests
-    if: github.event_name == 'schedule'
     name: Create and publish package to PyPI with current timestamp
     runs-on: ubuntu-latest
     steps:
