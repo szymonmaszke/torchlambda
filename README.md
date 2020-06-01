@@ -9,8 +9,7 @@ Using statically compiled dependencies __whole package is shrunk to only `30MB`_
 Due to small size of compiled source code users can pass their models as [AWS Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html).
 __Services like [Amazon S3](https://aws.amazon.com/s3/) are no longer necessary to load your model__.
 
-[__torchlambda__](https://github.com/szymonmaszke/torchlambda/wiki) has it's PyTorch & AWS dependencies always tested & up to date because of [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) run at `03:00 a.m.`
-every day.
+[__torchlambda__](https://github.com/szymonmaszke/torchlambda/wiki) has it's PyTorch & AWS dependencies always tested & up to date because of daily [continuous deployment](https://en.wikipedia.org/wiki/Continuous_deployment) runs.
 
 
 | Docs | Deployment | Package | Python | PyTorch | Docker | CodeBeat | Images |
@@ -21,7 +20,7 @@ every day.
 ## :heavy_check_mark: Why should I use `torchlambda`?
 
 - __Lightweight & latest dependencies__ - compiled source code weights only `30MB`. Previous approach to PyTorch network deployment on AWS Lambda ([fastai](https://course.fast.ai/deployment_aws_lambda.html)) uses outdated PyTorch (`1.1.0`) as dependency layer and requires AWS S3 to host your model. Now you can only use AWS Lambda and host your model as layer and PyTorch `master` and latest stable release are supported on a daily basis.
-- __Cheaper and less resource hungry__ - available solutions run server hosting incoming requests all the time. AWS Lambda (and torchlambda) runs only when the request comes. 
+- __Cheaper and less resource hungry__ - available solutions run server hosting incoming requests all the time. AWS Lambda (and torchlambda) runs only when the request comes.
 - __Easy automated scaling__  usually autoscaling is done with [Kubernetes](https://kubernetes.io/) or similar tools (see [KubeFlow](https://www.kubeflow.org/docs/gke/deploy/)). This approach requires knowledge of another tool, setting up appropriate services (e.g. [Amazon EKS](https://aws.amazon.com/eks/)). In AWS Lambda case you just push your neural network inference code and you are done.
 - __Easy to use__ - no need to learn new tool. `torchlambda` has at most
 `4` commands and deployment is done via [YAML](https://yaml.org/) settings. No need to modify your PyTorch code.
@@ -72,4 +71,3 @@ Clearly the bigger image, the more important it is to use `base64` encoding. For
 ## :question: Contributing
 
 If you find an issue or you think some functionality may be useful to you, please [open new Issue](https://help.github.com/en/articles/creating-an-issue) or [create Pull Request](https://help.github.com/en/articles/creating-a-pull-request-from-a-fork) with your changes, thanks!
-
