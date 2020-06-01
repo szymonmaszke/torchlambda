@@ -1,8 +1,6 @@
 import argparse
-import functools
 import itertools
 import pathlib
-import zipfile
 from datetime import datetime
 
 import numpy as np

@@ -3,11 +3,11 @@
 __You shouldn't base your settings on information provided in this section. Perform your
 own measurements, this section acts more as a rule of thumb__.
 
+
+Exact  number of tests (on which this comparison is based) can be seen as the footer of
+this page
 Below matrices show latest performance measurements gathered from automated tests from last
 week.
-
-Around `3000` tests are performed daily which gives us around `21000` tests in total
-used for creation of this matrix
 
 __Each entry has the following format:__
 
