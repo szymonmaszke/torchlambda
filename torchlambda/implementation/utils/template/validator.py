@@ -31,11 +31,11 @@ class Validator(cerberus.Validator):
         {"type": "string"}
         """
         shapes = self.root_document["input"][shape_field]
-        if len(value) != 1 or len(value) != len(shapes):
+        if len(value) != 1 and len(value) != shapes[1]:
             self._error(
                 field,
-                "{} field's shape is not broadcastable to provided input shape: {}".format(
-                    field, shapes
+                "{} field shape ({}) is not broadcastable to provided input shape: {}".format(
+                    field, value, shapes
                 ),
             )
 
