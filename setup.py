@@ -20,10 +20,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/pypa/torchlambda",
     packages=setuptools.find_packages(),
-    package_data={"": ["*.sh", "*.txt", "Dockerfile", ".dockerignore", "templates"]},
+    include_package_data=True,
     python_requires=">=3.6",
     install_requires=["PyYAML>=5.3", "Cerberus>=1.3.2"],
-    entry_points={"console_scripts": ["torchlambda=torchlambda.main:main"],},
+    entry_points={"console_scripts": ["torchlambda=torchlambda.main:main"]},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Programming Language :: Python",
