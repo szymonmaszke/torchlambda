@@ -9,8 +9,12 @@ def run(args):
     with implementation.general.message(
         "creating YAML settings at {}.".format(destination)
     ):
+        template_path = (
+            pathlib.Path(__file__).resolve().parent.parent
+            / "templates/settings/torchlambda.yaml"
+        )
         implementation.general.run(
-            "cp -r ./templates/settings/torchlambda.yaml {}".format(destination),
+            "cp -r {} {}".format(template_path, destination),
             operation="copying YAML source code",
             silent=args.silent,
         )
