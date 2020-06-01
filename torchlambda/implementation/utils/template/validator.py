@@ -30,14 +30,15 @@ class Validator(cerberus.Validator):
         The rule's arguments are validated against this schema:
         {"type": "string"}
         """
-        shapes = self.root_document["input"][shape_field]
-        if len(value) != 1 and len(value) != shapes[1]:
-            self._error(
-                field,
-                "{} field shape ({}) is not broadcastable to provided input shape: {}".format(
-                    field, value, shapes
-                ),
-            )
+        if isinstance(value, (list, tuple)):
+            shapes = self.root_document["input"][shape_field]
+            if len(value) != 1 and len(value) != shapes[1]:
+                self._error(
+                    field,
+                    "{} field shape ({}) is not broadcastable to provided input shape: {}".format(
+                        field, value, shapes
+                    ),
+                )
 
 
 def _is_not_dict(field, value, error):
@@ -105,13 +106,13 @@ def get():
                     "means": {
                         "required": True,
                         "broadcastable": "shape",
-                        "type": "list",
+                        "anyof_type": ["list", "number"],
                         "schema": {"type": "number"},
                     },
                     "stddevs": {
                         "required": True,
                         "broadcastable": "shape",
-                        "type": "list",
+                        "anyof_type": ["list", "number"],
                         "schema": {"type": "number"},
                     },
                 },
