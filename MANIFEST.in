@@ -1,2 +1,1 @@
-recursive-include torchlambda/templates *
-recursive-include torchlambda/dependencies *
+recursive-include torchlambda *
