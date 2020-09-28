@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         pytorch:
-          - "v1.5.0"
+          - "v1.6.0"
           - "latest"
         python:
           - 3.6
@@ -46,7 +46,7 @@ jobs:
     strategy:
       matrix:
         pytorch:
-          - "v1.5.0"
+          - "v1.6.0"
           - "latest"
     steps:
       - uses: actions/checkout@v1
