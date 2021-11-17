@@ -5,9 +5,10 @@ ARG PYTORCH=" "
 ARG PYTORCH_VERSION="latest"
 
 RUN yum -y group install "Development Tools" && \
-  yum -y install unzip git wget rh-python37 ninja-build cmake3 curl-devel \
+  yum -y install unzip git wget rh-python37 ninja-build curl-devel \
   libcurl-devel libuuid-devel openssl-devel && \
   pip3 install --no-cache-dir pyyaml==5.3 && \
+  pip3 install cmake && \
   ln -s /usr/bin/ninja-build /usr/bin/ninja
 
 WORKDIR /home/app
